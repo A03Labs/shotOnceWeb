@@ -19,8 +19,10 @@ export const links: Route.LinksFunction = () => [
   },
   {
     rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap",
   },
+  { rel: "icon", type: "image/png", href: "/favicon.png" },
+  { rel: "apple-touch-icon", href: "/shotonce-icon.png" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -38,6 +40,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Scripts />
       </body>
     </html>
+  );
+}
+
+export function HydrateFallback() {
+  return (
+    <div className="flex h-screen w-screen items-center justify-center bg-[#07080a] text-white">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-2xl shadow-amber-500/20 border border-amber-400/40 animate-pulse">
+          <img src="/shotonce-icon.png" alt="ShotOnce" className="w-full h-full object-cover" />
+        </div>
+        <div className="font-['Outfit'] font-bold text-sm tracking-wide text-amber-300">
+          ShotOnce Studio
+        </div>
+        <div className="text-[11px] font-mono text-gray-500">
+          Initializing Engine...
+        </div>
+      </div>
+    </div>
   );
 }
 
