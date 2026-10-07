@@ -1,19 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router';
 import {
-  Video,
-  Monitor,
-  Mic,
   Circle,
   Square,
-  Activity,
-  FileVideo,
-  FileText,
   ShieldCheck,
-  Check,
-  PictureInPicture2,
+  Rows,
+  Columns,
+  ArrowLeftRight,
+  Layers,
+  AlignLeft,
+  AlignRight,
 } from 'lucide-react';
-import type { StudioSettings } from '../types';
+import type { CameraLayout, StudioSettings } from '../types';
 
 interface StudioHeaderProps {
   settings: StudioSettings;
@@ -22,17 +20,6 @@ interface StudioHeaderProps {
   recordingDuration: number;
   onStartRecording: () => void;
   onStopRecording: () => void;
-  hasScreen: boolean;
-  hasCamera: boolean;
-  hasMic: boolean;
-  isFloatingPipOpen: boolean;
-  onToggleScreen: () => void;
-  onToggleCamera: () => void;
-  onToggleMic: () => void;
-  onToggleFloatingPip: () => void;
-  onOpenLibrary: () => void;
-  onToggleScopes: () => void;
-  libraryCount: number;
 }
 
 export const StudioHeader: React.FC<StudioHeaderProps> = ({
@@ -42,159 +29,216 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
   recordingDuration,
   onStartRecording,
   onStopRecording,
-  hasScreen,
-  hasCamera,
-  hasMic,
-  isFloatingPipOpen,
-  onToggleScreen,
-  onToggleCamera,
-  onToggleMic,
-  onToggleFloatingPip,
-  onOpenLibrary,
-  onToggleScopes,
-  libraryCount,
 }) => {
   const formatTime = (secs: number) => {
     const mins = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    const secsRem = secs % 60;
+    return `${mins.toString().padStart(2, '0')}:${secsRem.toString().padStart(2, '0')}`;
+  };
+
+  const isSplit = settings.cameraLayout.startsWith('split-');
+  const isFloating = settings.cameraLayout.startsWith('float-');
+
+  // Floating shape and side
+  const floatingShape: 'round' | 'square' = settings.cameraLayout.includes('square') ? 'square' : 'round';
+  const floatingSide: 'left' | 'right' = settings.cameraLayout.includes('left') ? 'left' : 'right';
+
+  const handleSwap = () => {
+    onUpdateSettings((prev) => {
+      let next = prev.cameraLayout;
+      if (next === 'split-top') next = 'split-bottom';
+      else if (next === 'split-bottom') next = 'split-top';
+      else if (next === 'split-left') next = 'split-right';
+      else if (next === 'split-right') next = 'split-left';
+      return { ...prev, cameraLayout: next };
+    });
+  };
+
+  const setFloatingLayout = (shape: 'round' | 'square', side: 'left' | 'right') => {
+    const next: CameraLayout = `float-${shape}-${side}` as CameraLayout;
+    onUpdateSettings((prev) => ({ ...prev, cameraLayout: next }));
   };
 
   return (
-    <header className="h-16 px-6 bg-[#131518] flex items-center justify-between z-30 shrink-0">
-      {/* Brand & Mode */}
-      <div className="flex items-center gap-4">
+    <header className="h-16 px-6 bg-[#07080A] flex items-center justify-between z-30 shrink-0 select-none">
+      {/* Brand */}
+      <div className="flex items-center gap-3">
         <Link
           to="/"
           className="flex items-center gap-3 transition-opacity hover:opacity-90"
-          title="Return to ShotOnce Home & Mobile Downloads"
+          title="Return to ShotOnce Home"
         >
-          <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#07080A] shrink-0">
+          <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#131518] shrink-0">
             <img src="/shotonce-icon.png" alt="ShotOnce" className="w-full h-full object-cover" />
           </div>
           <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-sm tracking-tight text-[#F3F5F7] font-['Outfit']">
-                ShotOnce
-              </span>
-              <span className="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-[#1C2026] text-[#E5A93C] font-mono">
-                Studio
-              </span>
-            </div>
-            <p className="text-[10px] text-[#969EAA] font-mono">
-              4K 60fps · Local Engine
-            </p>
+            <span className="font-extrabold text-sm tracking-tight text-[#F3F5F7] font-['Outfit']">
+              ShotOnce
+            </span>
+            <span className="text-[10px] text-[#969EAA] font-mono ml-2">Studio</span>
           </div>
         </Link>
       </div>
 
-      {/* Media Sources & Teleprompter Controls */}
+      {/* Layout Mode Control Center (Centered) */}
       <div className="flex items-center gap-2">
-        {/* Screen Share Source */}
-        <button
-          onClick={onToggleScreen}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors ${
-            hasScreen
-              ? 'bg-[#1C2026] text-[#10B981] font-semibold'
-              : 'bg-[#1C2026] text-[#969EAA] hover:bg-[#262B33] hover:text-[#F3F5F7]'
-          }`}
-          title={hasScreen ? 'Screen stream active (click to disconnect)' : 'Request screen sharing permission'}
-        >
-          <Monitor className="w-3.5 h-3.5" />
-          <span>{hasScreen ? 'Screen Active' : 'Allow Screen'}</span>
-          {hasScreen && <Check className="w-3 h-3 text-[#10B981]" />}
-        </button>
+        {/* Mode Selector Tabs */}
+        <div className="flex items-center bg-[#131518] p-1 rounded-xl">
+          <button
+            onClick={() => {
+              if (!isSplit) {
+                onUpdateSettings((prev) => ({ ...prev, cameraLayout: 'split-top' }));
+              }
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              isSplit
+                ? 'bg-[#E5A93C] text-[#0D0E11]'
+                : 'text-[#969EAA] hover:text-[#F3F5F7] hover:bg-[#1C2026]'
+            }`}
+          >
+            <Rows className="w-3.5 h-3.5" />
+            <span>50/50 Split</span>
+          </button>
 
-        {/* Camera Source */}
-        <button
-          onClick={onToggleCamera}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors ${
-            hasCamera
-              ? 'bg-[#1C2026] text-[#10B981] font-semibold'
-              : 'bg-[#1C2026] text-[#969EAA] hover:bg-[#262B33] hover:text-[#F3F5F7]'
-          }`}
-          title={hasCamera ? 'Webcam active (click to disconnect)' : 'Request camera permission'}
-        >
-          <Video className="w-3.5 h-3.5" />
-          <span>{hasCamera ? 'Camera Active' : 'Allow Camera'}</span>
-          {hasCamera && <Check className="w-3 h-3 text-[#10B981]" />}
-        </button>
+          <button
+            onClick={() => {
+              if (!isFloating) {
+                onUpdateSettings((prev) => ({ ...prev, cameraLayout: 'float-round-right' }));
+              }
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              isFloating
+                ? 'bg-[#E5A93C] text-[#0D0E11]'
+                : 'text-[#969EAA] hover:text-[#F3F5F7] hover:bg-[#1C2026]'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Full Screen + Floating</span>
+          </button>
+        </div>
 
-        {/* Microphone Source */}
-        <button
-          onClick={onToggleMic}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors ${
-            hasMic
-              ? 'bg-[#1C2026] text-[#10B981] font-semibold'
-              : 'bg-[#1C2026] text-[#969EAA] hover:bg-[#262B33] hover:text-[#F3F5F7]'
-          }`}
-          title={hasMic ? 'Microphone active (click to mute)' : 'Request microphone permission'}
-        >
-          <Mic className="w-3.5 h-3.5" />
-          <span>{hasMic ? 'Mic Active' : 'Allow Mic'}</span>
-          {hasMic && <Check className="w-3 h-3 text-[#10B981]" />}
-        </button>
+        {/* Sub-Controls for Split Mode */}
+        {isSplit && (
+          <div className="flex items-center gap-1 bg-[#131518] p-1 rounded-xl">
+            <button
+              onClick={() =>
+                onUpdateSettings((prev) => ({
+                  ...prev,
+                  cameraLayout: prev.cameraLayout === 'split-bottom' ? 'split-bottom' : 'split-top',
+                }))
+              }
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                settings.cameraLayout === 'split-top' || settings.cameraLayout === 'split-bottom'
+                  ? 'bg-[#1C2026] text-[#E5A93C] font-semibold'
+                  : 'text-[#969EAA] hover:text-[#F3F5F7]'
+              }`}
+              title="Top & Bottom Split"
+            >
+              Top/Bottom
+            </button>
 
-        <div className="w-px h-5 bg-[#1C2026] mx-1" />
+            <button
+              onClick={() =>
+                onUpdateSettings((prev) => ({
+                  ...prev,
+                  cameraLayout: prev.cameraLayout === 'split-right' ? 'split-right' : 'split-left',
+                }))
+              }
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                settings.cameraLayout === 'split-left' || settings.cameraLayout === 'split-right'
+                  ? 'bg-[#1C2026] text-[#E5A93C] font-semibold'
+                  : 'text-[#969EAA] hover:text-[#F3F5F7]'
+              }`}
+              title="Left & Right Side Split"
+            >
+              Left/Right
+            </button>
 
-        {/* Floating Face View PiP Popout */}
-        <button
-          onClick={onToggleFloatingPip}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
-            isFloatingPipOpen
-              ? 'bg-[#E5A93C] text-[#0D0E11] font-semibold'
-              : 'bg-[#1C2026] text-[#969EAA] hover:bg-[#262B33] hover:text-[#F3F5F7]'
-          }`}
-          title="Float always-on-top webcam face bubble and recorder over other desktop apps"
-        >
-          <PictureInPicture2 className="w-3.5 h-3.5" />
-          <span>{isFloatingPipOpen ? 'Face Floating' : 'Float Face PiP'}</span>
-        </button>
+            <button
+              onClick={handleSwap}
+              className="px-2 py-1.5 rounded-lg text-xs font-mono font-bold text-[#E5A93C] hover:bg-[#1C2026] transition-colors flex items-center gap-1"
+              title="Swap camera and screen positions"
+            >
+              <ArrowLeftRight className="w-3.5 h-3.5" />
+              <span>Swap ⇄</span>
+            </button>
+          </div>
+        )}
 
-        {/* Teleprompter HUD Toggle */}
-        <button
-          onClick={() =>
-            onUpdateSettings((prev) => ({
-              ...prev,
-              teleprompterVisible: !prev.teleprompterVisible,
-            }))
-          }
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
-            settings.teleprompterVisible
-              ? 'bg-[#E5A93C] text-[#0D0E11] font-semibold'
-              : 'bg-[#1C2026] text-[#969EAA] hover:bg-[#262B33] hover:text-[#F3F5F7]'
-          }`}
-          title="Toggle Floating Eye-Line Teleprompter HUD"
-        >
-          <FileText className="w-3.5 h-3.5" />
-          <span>Teleprompter</span>
-        </button>
+        {/* Sub-Controls for Floating Camera Mode */}
+        {isFloating && (
+          <div className="flex items-center gap-2 bg-[#131518] p-1 rounded-xl">
+            {/* Shape: Round vs Square */}
+            <div className="flex items-center gap-0.5 bg-[#1C2026] p-0.5 rounded-lg">
+              <button
+                onClick={() => setFloatingLayout('round', floatingSide)}
+                className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-colors ${
+                  floatingShape === 'round'
+                    ? 'bg-[#E5A93C] text-[#0D0E11] font-semibold'
+                    : 'text-[#969EAA] hover:text-[#F3F5F7]'
+                }`}
+                title="Round Floating Camera"
+              >
+                <Circle className="w-3 h-3 fill-current" />
+                <span>Round</span>
+              </button>
 
-        {/* Cinema Scopes HUD Toggle */}
-        <button
-          onClick={onToggleScopes}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
-            settings.histogramEnabled || settings.zebrasEnabled
-              ? 'bg-[#E5A93C] text-[#0D0E11] font-semibold'
-              : 'bg-[#1C2026] text-[#969EAA] hover:bg-[#262B33] hover:text-[#F3F5F7]'
-          }`}
-          title="Blackmagic Cinema Suite Scopes & Zebras"
-        >
-          <Activity className="w-3.5 h-3.5" />
-          <span>Scopes</span>
-        </button>
+              <button
+                onClick={() => setFloatingLayout('square', floatingSide)}
+                className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-colors ${
+                  floatingShape === 'square'
+                    ? 'bg-[#E5A93C] text-[#0D0E11] font-semibold'
+                    : 'text-[#969EAA] hover:text-[#F3F5F7]'
+                }`}
+                title="Square Floating Camera"
+              >
+                <Square className="w-3 h-3 fill-current" />
+                <span>Square</span>
+              </button>
+            </div>
+
+            {/* Position: Left vs Right */}
+            <div className="flex items-center gap-0.5 bg-[#1C2026] p-0.5 rounded-lg">
+              <button
+                onClick={() => setFloatingLayout(floatingShape, 'left')}
+                className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-colors ${
+                  floatingSide === 'left'
+                    ? 'bg-[#E5A93C] text-[#0D0E11] font-semibold'
+                    : 'text-[#969EAA] hover:text-[#F3F5F7]'
+                }`}
+                title="Float on Left Side"
+              >
+                <AlignLeft className="w-3 h-3" />
+                <span>Left</span>
+              </button>
+
+              <button
+                onClick={() => setFloatingLayout(floatingShape, 'right')}
+                className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-colors ${
+                  floatingSide === 'right'
+                    ? 'bg-[#E5A93C] text-[#0D0E11] font-semibold'
+                    : 'text-[#969EAA] hover:text-[#F3F5F7]'
+                }`}
+                title="Float on Right Side"
+              >
+                <AlignRight className="w-3 h-3" />
+                <span>Right</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Recording Master Actions & Library */}
+      {/* Record Action & Timer */}
       <div className="flex items-center gap-3">
-        {/* Tally Light & Timer */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#07080A]">
-          <div
+        {/* Tally Duration */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#131518]">
+          <span
             className={`w-2 h-2 rounded-full ${
-              isRecording ? 'bg-[#EF4444]' : 'bg-[#5C6370]'
+              isRecording ? 'bg-[#EF4444] animate-pulse' : 'bg-[#5C6370]'
             }`}
           />
-          <span className="font-mono text-xs font-medium tracking-wider text-[#F3F5F7]">
+          <span className="font-mono text-xs font-semibold tracking-wider text-[#F3F5F7]">
             {isRecording ? formatTime(recordingDuration) : 'STANDBY'}
           </span>
         </div>
@@ -203,41 +247,25 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
         {!isRecording ? (
           <button
             onClick={onStartRecording}
-            className="px-4 py-2 rounded-lg font-bold text-xs tracking-wide bg-[#EF4444] hover:bg-[#DC2626] text-white flex items-center gap-2 transition-colors"
+            className="px-5 py-2 rounded-lg font-bold text-xs tracking-wide bg-[#E5A93C] hover:bg-[#FFB834] text-[#0D0E11] flex items-center gap-2 transition-colors shadow-lg shadow-[#E5A93C]/20"
           >
-            <Circle className="w-3 h-3 fill-white" />
+            <Circle className="w-3.5 h-3.5 fill-[#0D0E11]" />
             <span>RECORD</span>
           </button>
         ) : (
           <button
             onClick={onStopRecording}
-            className="px-4 py-2 rounded-lg font-bold text-xs tracking-wide bg-[#1C2026] text-[#EF4444] hover:bg-[#262B33] flex items-center gap-2 transition-colors"
+            className="px-5 py-2 rounded-lg font-bold text-xs tracking-wide bg-[#EF4444] hover:bg-[#DC2626] text-white flex items-center gap-2 transition-colors animate-pulse"
           >
-            <Square className="w-3 h-3 fill-[#EF4444]" />
-            <span>STOP TAKE</span>
+            <Square className="w-3.5 h-3.5 fill-white" />
+            <span>STOP</span>
           </button>
         )}
 
-        {/* Capture Library Button */}
-        <button
-          onClick={onOpenLibrary}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#1C2026] hover:bg-[#262B33] text-[#969EAA] hover:text-[#F3F5F7] flex items-center gap-1.5 transition-colors"
-          title="Open Capture Library & Past Takes"
-        >
-          <FileVideo className="w-3.5 h-3.5 text-[#E5A93C]" />
-          <span>Library</span>
-          {libraryCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-[#E5A93C] text-[#0D0E11] font-bold">
-              {libraryCount}
-            </span>
-          )}
-        </button>
-
-        {/* Privacy Policy Link */}
         <Link
           to="/privacy"
-          className="p-2 rounded-lg text-[#969EAA] hover:text-[#F3F5F7] hover:bg-[#1C2026] transition-colors"
-          title="Privacy Policy (100% Client-Side)"
+          className="p-2 rounded-lg text-[#969EAA] hover:text-[#F3F5F7] hover:bg-[#131518] transition-colors"
+          title="Privacy Policy"
         >
           <ShieldCheck className="w-4 h-4 text-[#10B981]" />
         </Link>

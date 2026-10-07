@@ -352,6 +352,54 @@ export const InspectorSidebar: React.FC<InspectorSidebarProps> = ({
               </div>
             </div>
 
+            {/* PiP Recording Exclusion Toggle */}
+            <div className="p-3 rounded-xl bg-[#131518] border border-[#262B33]">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-semibold text-[#F3F5F7]">
+                  Capture PiP in Recording
+                </span>
+                <input
+                  type="checkbox"
+                  checked={settings.burnFloatingPipInRecording}
+                  onChange={(e) =>
+                    onUpdateSettings((prev) => ({
+                      ...prev,
+                      burnFloatingPipInRecording: e.target.checked,
+                    }))
+                  }
+                  className="rounded accent-[#E5A93C] w-4 h-4 cursor-pointer"
+                />
+              </div>
+              <p className="text-[11px] text-[#969EAA] leading-relaxed">
+                {settings.burnFloatingPipInRecording
+                  ? 'PiP camera bubble will be burned into the exported video.'
+                  : 'Floating PiP is for live monitoring only and will NOT be captured in the video.'}
+              </p>
+            </div>
+
+            {/* Auto-open Floating PiP on Record */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#131518] border border-[#262B33]">
+              <div>
+                <div className="text-xs font-semibold text-[#F3F5F7]">
+                  Auto-Pop Desktop PiP
+                </div>
+                <div className="text-[11px] text-[#969EAA]">
+                  Open floating popout window when recording starts
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.autoOpenPipOnRecord}
+                onChange={(e) =>
+                  onUpdateSettings((prev) => ({
+                    ...prev,
+                    autoOpenPipOnRecord: e.target.checked,
+                  }))
+                }
+                className="rounded accent-[#E5A93C] w-4 h-4 cursor-pointer ml-3"
+              />
+            </div>
+
             {/* Camera Scale (when in PiP mode) */}
             {(settings.cameraLayout === 'circle' || settings.cameraLayout === 'rounded-pip') && (
               <div>

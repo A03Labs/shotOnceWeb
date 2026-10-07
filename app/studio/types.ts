@@ -54,6 +54,10 @@ export type CameraLayout =
   | 'split-bottom'
   | 'split-left'
   | 'split-right'
+  | 'float-round-right'
+  | 'float-round-left'
+  | 'float-square-right'
+  | 'float-square-left'
   | 'circle'
   | 'rounded-pip'
   | 'fullscreen'
@@ -106,6 +110,10 @@ export interface StudioSettings {
   teleprompterFontSize: number;
   teleprompterText: string;
   teleprompterMirrored: boolean;
+
+  // PiP recording exclusions
+  burnFloatingPipInRecording: boolean; // if false, floating face PiP is purely a local monitor and NOT captured in recording
+  autoOpenPipOnRecord: boolean; // if false, does not auto-open OS floating PiP window when recording starts
 
   // Multi-aspect derivations active
   activeDerivations: AspectRatioId[];

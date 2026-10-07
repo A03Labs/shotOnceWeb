@@ -1,17 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { StudioHeader } from './components/StudioHeader';
 import { StudioStage } from './components/StudioStage';
-import { InspectorSidebar } from './components/InspectorSidebar';
-import { TeleprompterHUD } from './components/TeleprompterHUD';
-import { CinemaScopesModal } from './components/CinemaScopesModal';
-import { TrimTimelineModal } from './components/TrimTimelineModal';
-import { CaptureLibraryDrawer } from './components/CaptureLibraryDrawer';
+import { RecordedTakeModal } from './components/RecordedTakeModal';
 import { FloatingFacePip } from './components/FloatingFacePip';
 import { CanvasCompositor } from './compositor';
 import { audioStudioEngine } from './audio-engine';
-import { computeLuminanceHistogram } from './cinema-filters';
 import { DEFAULT_STUDIO_SETTINGS } from './constants';
-import { getAllTakesFromLibrary, saveTakeToLibrary, deleteTakeFromLibrary } from './storage';
 import type { RecordedTake, StudioSettings } from './types';
 
 export const StudioApp: React.FC = () => {
@@ -20,18 +14,13 @@ export const StudioApp: React.FC = () => {
   const [hasCamera, setHasCamera] = useState<boolean>(false);
   const [hasMic, setHasMic] = useState<boolean>(false);
   const [isRequestingPermissions, setIsRequestingPermissions] = useState<boolean>(false);
-  const [permissionError, setPermissionError] = useState<string | null>(null);
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
+  const [isSharingEntireMonitor, setIsSharingEntireMonitor] = useState<boolean>(false);
 
+  // Recording State
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [recordingDuration, setRecordingDuration] = useState<number>(0);
-  const [takes, setTakes] = useState<RecordedTake[]>([]);
-  const [selectedTakeForTrim, setSelectedTakeForTrim] = useState<RecordedTake | null>(null);
-  const [isLibraryOpen, setIsLibraryOpen] = useState<boolean>(false);
-  const [isScopesOpen, setIsScopesOpen] = useState<boolean>(false);
-  const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
-  const [histogramBins, setHistogramBins] = useState<number[]>(new Array(16).fill(0.2));
-  const [clippingPercent, setClippingPercent] = useState<number>(0);
+  const [completedTake, setCompletedTake] = useState<RecordedTake | null>(null);
 
   // Hidden Video elements for media streams
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -52,45 +41,23 @@ export const StudioApp: React.FC = () => {
   // Canvas Compositor
   const compositorRef = useRef<CanvasCompositor>(new CanvasCompositor(1920, 1080));
 
-  // Load past takes from IndexedDB on mount
+  // Initialize Audio Engine on mount
   useEffect(() => {
-    getAllTakesFromLibrary().then(setTakes).catch(console.error);
-
-    // Enumerate audio input devices if already permitted
-    if (typeof navigator !== 'undefined' && navigator.mediaDevices?.enumerateDevices) {
-      navigator.mediaDevices.enumerateDevices().then((devices) => {
-        const audioInputs = devices.filter((d) => d.kind === 'audioinput');
-        setAudioDevices(audioInputs);
-      }).catch(console.warn);
-    }
-
-    // Initialize audio engine
     audioStudioEngine.init();
 
     return () => {
       audioStudioEngine.cleanup();
-      // Stop all tracks on unmount
       if (screenStreamRef.current) screenStreamRef.current.getTracks().forEach((t) => t.stop());
       if (cameraStreamRef.current) cameraStreamRef.current.getTracks().forEach((t) => t.stop());
       if (micStreamRef.current) micStreamRef.current.getTracks().forEach((t) => t.stop());
     };
   }, []);
 
-  // Sync Audio Settings with Audio Engine
-  useEffect(() => {
-    audioStudioEngine.setMicVolume(settings.micVolume);
-    audioStudioEngine.setSystemVolume(settings.systemVolume);
-    audioStudioEngine.setCompressorEnabled(settings.compressor);
-    audioStudioEngine.setNoiseGateEnabled(settings.noiseGate);
-  }, [settings.micVolume, settings.systemVolume, settings.compressor, settings.noiseGate]);
-
   // Main 60fps Canvas Compositing Loop
   useEffect(() => {
     let animId: number;
-    let frameCount = 0;
 
     const render = () => {
-      frameCount++;
       const canvas = masterCanvasRef.current;
       if (canvas) {
         const ctx = canvas.getContext('2d', { alpha: false });
@@ -101,13 +68,6 @@ export const StudioApp: React.FC = () => {
             screenVideoRef.current,
             cameraVideoRef.current
           );
-
-          // Update histogram & scopes every 12 frames to preserve rendering performance
-          if (frameCount % 12 === 0 && (settings.histogramEnabled || isScopesOpen)) {
-            const hist = computeLuminanceHistogram(ctx, 160, 90);
-            setHistogramBins(hist.bins);
-            setClippingPercent(hist.clippingPercent);
-          }
         }
       }
       animId = requestAnimationFrame(render);
@@ -115,9 +75,9 @@ export const StudioApp: React.FC = () => {
 
     animId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animId);
-  }, [settings, isScopesOpen]);
+  }, [settings, hasScreen, hasCamera]);
 
-  // Toggle Screen Capture
+  // Toggle Screen Sharing
   const handleToggleScreen = async () => {
     if (screenStreamRef.current) {
       screenStreamRef.current.getTracks().forEach((t) => t.stop());
@@ -125,17 +85,21 @@ export const StudioApp: React.FC = () => {
       if (screenVideoRef.current) screenVideoRef.current.srcObject = null;
       audioStudioEngine.setSystemStream(null);
       setHasScreen(false);
+      setIsSharingEntireMonitor(false);
       return;
     }
 
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          frameRate: 60,
-          displaySurface: 'monitor',
-        },
+        video: { frameRate: 60 },
         audio: true,
-      });
+        selfBrowserSurface: 'exclude',
+        systemAudio: 'include',
+      } as any);
+
+      const videoTrack = stream.getVideoTracks()[0];
+      const trackSettings = (videoTrack?.getSettings?.() as any) || {};
+      setIsSharingEntireMonitor(trackSettings.displaySurface === 'monitor');
 
       screenStreamRef.current = stream;
       if (screenVideoRef.current) {
@@ -143,15 +107,15 @@ export const StudioApp: React.FC = () => {
         screenVideoRef.current.play().catch(console.warn);
       }
 
-      // Route system audio
       audioStudioEngine.setSystemStream(stream);
       setHasScreen(true);
 
-      stream.getVideoTracks()[0].onended = () => {
+      videoTrack.onended = () => {
         screenStreamRef.current = null;
         if (screenVideoRef.current) screenVideoRef.current.srcObject = null;
         audioStudioEngine.setSystemStream(null);
         setHasScreen(false);
+        setIsSharingEntireMonitor(false);
       };
     } catch (err) {
       console.warn('Screen share cancelled or not allowed:', err);
@@ -201,14 +165,8 @@ export const StudioApp: React.FC = () => {
     }
 
     try {
-      const deviceConstraint =
-        settings.selectedMicId && settings.selectedMicId !== 'default'
-          ? { exact: settings.selectedMicId }
-          : undefined;
-
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          deviceId: deviceConstraint,
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
@@ -219,13 +177,6 @@ export const StudioApp: React.FC = () => {
       micStreamRef.current = stream;
       audioStudioEngine.setMicrophoneStream(stream);
       setHasMic(true);
-
-      if (navigator.mediaDevices?.enumerateDevices) {
-        navigator.mediaDevices.enumerateDevices().then((devices) => {
-          const audioInputs = devices.filter((d) => d.kind === 'audioinput');
-          setAudioDevices(audioInputs);
-        }).catch(console.warn);
-      }
     } catch (err) {
       console.warn('Microphone permission cancelled or not allowed:', err);
     }
@@ -234,9 +185,7 @@ export const StudioApp: React.FC = () => {
   // Grant All Studio Permissions Flow
   const handleGrantAllPermissions = async () => {
     setIsRequestingPermissions(true);
-    setPermissionError(null);
 
-    // 1. Request Camera and Microphone
     try {
       if (!cameraStreamRef.current || !micStreamRef.current) {
         const needCam = !cameraStreamRef.current;
@@ -244,61 +193,50 @@ export const StudioApp: React.FC = () => {
 
         const avStream = await navigator.mediaDevices.getUserMedia({
           video: needCam
-            ? {
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
-                facingMode: 'user',
-              }
+            ? { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: 'user' }
             : false,
-          audio: needMic
-            ? {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true,
-              }
-            : false,
+          audio: needMic ? { echoCancellation: true, noiseSuppression: true } : false,
         });
 
-        const vTracks = avStream.getVideoTracks();
-        if (vTracks.length > 0 && !cameraStreamRef.current) {
-          const camStream = new MediaStream(vTracks);
-          cameraStreamRef.current = camStream;
-          if (cameraVideoRef.current) {
-            cameraVideoRef.current.srcObject = camStream;
-            cameraVideoRef.current.play().catch(console.warn);
+        if (needCam) {
+          const camTracks = avStream.getVideoTracks();
+          if (camTracks.length > 0) {
+            const camStream = new MediaStream(camTracks);
+            cameraStreamRef.current = camStream;
+            if (cameraVideoRef.current) {
+              cameraVideoRef.current.srcObject = camStream;
+              cameraVideoRef.current.play().catch(console.warn);
+            }
+            setHasCamera(true);
           }
-          setHasCamera(true);
         }
 
-        const aTracks = avStream.getAudioTracks();
-        if (aTracks.length > 0 && !micStreamRef.current) {
-          const mStream = new MediaStream(aTracks);
-          micStreamRef.current = mStream;
-          audioStudioEngine.setMicrophoneStream(mStream);
-          setHasMic(true);
-        }
-
-        if (navigator.mediaDevices?.enumerateDevices) {
-          navigator.mediaDevices.enumerateDevices().then((devices) => {
-            const audioInputs = devices.filter((d) => d.kind === 'audioinput');
-            setAudioDevices(audioInputs);
-          }).catch(console.warn);
+        if (needMic) {
+          const micTracks = avStream.getAudioTracks();
+          if (micTracks.length > 0) {
+            const micStream = new MediaStream(micTracks);
+            micStreamRef.current = micStream;
+            audioStudioEngine.setMicrophoneStream(micStream);
+            setHasMic(true);
+          }
         }
       }
     } catch (err) {
       console.warn('Camera/Mic permission skipped or denied:', err);
     }
 
-    // 2. Request Screen capture
     try {
       if (!screenStreamRef.current) {
         const sStream = await navigator.mediaDevices.getDisplayMedia({
-          video: {
-            frameRate: 60,
-            displaySurface: 'monitor',
-          },
+          video: { frameRate: 60 },
           audio: true,
-        });
+          selfBrowserSurface: 'exclude',
+          systemAudio: 'include',
+        } as any);
+
+        const videoTrack = sStream.getVideoTracks()[0];
+        const trackSettings = (videoTrack?.getSettings?.() as any) || {};
+        setIsSharingEntireMonitor(trackSettings.displaySurface === 'monitor');
 
         screenStreamRef.current = sStream;
         if (screenVideoRef.current) {
@@ -308,24 +246,22 @@ export const StudioApp: React.FC = () => {
         audioStudioEngine.setSystemStream(sStream);
         setHasScreen(true);
 
-        sStream.getVideoTracks()[0].onended = () => {
+        videoTrack.onended = () => {
           screenStreamRef.current = null;
           if (screenVideoRef.current) screenVideoRef.current.srcObject = null;
           audioStudioEngine.setSystemStream(null);
           setHasScreen(false);
+          setIsSharingEntireMonitor(false);
         };
       }
     } catch (err: any) {
       console.warn('Screen share permission skipped or denied:', err);
-      if (err.name !== 'NotAllowedError') {
-        setPermissionError(err.message || 'Screen sharing was cancelled or denied.');
-      }
     } finally {
       setIsRequestingPermissions(false);
     }
   };
 
-  // Floating Face View & Mini Controller PiP Manager
+  // Floating Face View PiP Manager (Optional user popout)
   const openFloatingFacePip = useCallback(async () => {
     if (pipWindow && !pipWindow.closed) {
       pipWindow.focus();
@@ -379,7 +315,7 @@ export const StudioApp: React.FC = () => {
       try {
         await cameraVideoRef.current.requestPictureInPicture();
       } catch (err) {
-        console.warn('Video Picture-in-Picture fallback error:', err);
+        console.warn('Video PiP error:', err);
       }
     }
   }, [pipWindow]);
@@ -399,16 +335,16 @@ export const StudioApp: React.FC = () => {
     }
   }, [pipWindow, openFloatingFacePip, closeFloatingFacePip]);
 
-  // Dynamic Browser Tab Title with REC indicator & Live Timer
+  // Tab Title Recording Indicator
   useEffect(() => {
     if (!isRecording) {
-      document.title = 'ShotOnce Studio · 4K 60fps Single-Capture Multi-Aspect';
+      document.title = 'ShotOnce Studio · Split Screen & Face Recording';
       return;
     }
     const mins = Math.floor(recordingDuration / 60);
     const secs = recordingDuration % 60;
     const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    document.title = `🔴 REC [${timeStr}] · ShotOnce Studio`;
+    document.title = `🔴 REC [${timeStr}] · ShotOnce`;
   }, [isRecording, recordingDuration]);
 
   // Recording Execution
@@ -419,7 +355,6 @@ export const StudioApp: React.FC = () => {
     recordedChunksRef.current = [];
     const stream = canvas.captureStream(60);
 
-    // Attach mixed audio
     const audioTrack = audioStudioEngine.getMixedTrack();
     if (audioTrack) {
       stream.addTrack(audioTrack);
@@ -454,8 +389,6 @@ export const StudioApp: React.FC = () => {
     recorder.onstop = async () => {
       const durationMs = Date.now() - recordingStartTimeRef.current;
       const masterBlob = new Blob(recordedChunksRef.current, { type: chosenMime });
-
-      // Generate thumbnail from canvas
       const thumbUrl = canvas.toDataURL('image/jpeg', 0.8);
 
       const newTake: RecordedTake = {
@@ -464,15 +397,13 @@ export const StudioApp: React.FC = () => {
         durationMs,
         masterBlob,
         thumbnailUrl: thumbUrl,
-        name: `Take ${takes.length + 1} - Studio Session`,
+        name: `Recording - ${new Date().toLocaleTimeString()}`,
         trimStartMs: 0,
         trimEndMs: durationMs,
         settingsSnapshot: { ...settings },
       };
 
-      await saveTakeToLibrary(newTake);
-      setTakes((prev) => [newTake, ...prev]);
-      setSelectedTakeForTrim(newTake);
+      setCompletedTake(newTake);
     };
 
     recordingStartTimeRef.current = Date.now();
@@ -485,10 +416,7 @@ export const StudioApp: React.FC = () => {
     recordingTimerRef.current = window.setInterval(() => {
       setRecordingDuration(Math.floor((Date.now() - recordingStartTimeRef.current) / 1000));
     }, 1000);
-
-    // Auto-pop floating controller & face view so user can see their camera & timer across other apps
-    openFloatingFacePip().catch(console.warn);
-  }, [settings, takes.length, openFloatingFacePip]);
+  }, [settings]);
 
   const stopRecording = useCallback(() => {
     if (recordingTimerRef.current) {
@@ -501,21 +429,13 @@ export const StudioApp: React.FC = () => {
     setIsRecording(false);
   }, []);
 
-  const handleDeleteTake = async (id: string) => {
-    await deleteTakeFromLibrary(id);
-    setTakes((prev) => prev.filter((t) => t.id !== id));
-    if (selectedTakeForTrim?.id === id) {
-      setSelectedTakeForTrim(null);
-    }
-  };
-
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#07080a] text-white overflow-hidden select-none">
+    <div className="flex flex-col h-screen w-screen bg-[#07080A] text-white overflow-hidden select-none font-sans">
       {/* Hidden elements for media feeds */}
       <video ref={screenVideoRef} muted playsInline className="hidden" />
       <video ref={cameraVideoRef} muted playsInline className="hidden" />
 
-      {/* Studio Header Bar */}
+      {/* Streamlined Studio Header Bar */}
       <StudioHeader
         settings={settings}
         onUpdateSettings={setSettings}
@@ -523,92 +443,34 @@ export const StudioApp: React.FC = () => {
         recordingDuration={recordingDuration}
         onStartRecording={startRecording}
         onStopRecording={stopRecording}
+      />
+
+      {/* Central Full-Bleed Stage */}
+      <StudioStage
+        settings={settings}
+        onUpdateSettings={setSettings}
+        masterCanvasRef={masterCanvasRef}
         hasScreen={hasScreen}
         hasCamera={hasCamera}
         hasMic={hasMic}
         isFloatingPipOpen={!!pipWindow}
+        isRequestingPermissions={isRequestingPermissions}
         onToggleScreen={handleToggleScreen}
         onToggleCamera={handleToggleCamera}
         onToggleMic={handleToggleMic}
         onToggleFloatingPip={handleToggleFloatingPip}
-        onOpenLibrary={() => setIsLibraryOpen(true)}
-        onToggleScopes={() => setIsScopesOpen((v) => !v)}
-        libraryCount={takes.length}
+        onGrantAllPermissions={handleGrantAllPermissions}
       />
 
-      {/* Main Workspace (Stage + Right Inspector Sidebar) */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Central Stage */}
-        <StudioStage
-          settings={settings}
-          onUpdateSettings={setSettings}
-          masterCanvasRef={masterCanvasRef}
-          hasScreen={hasScreen}
-          hasCamera={hasCamera}
-          hasMic={hasMic}
-          isRequestingPermissions={isRequestingPermissions}
-          onToggleScreen={handleToggleScreen}
-          onToggleCamera={handleToggleCamera}
-          onToggleMic={handleToggleMic}
-          onGrantAllPermissions={handleGrantAllPermissions}
-        />
-
-        {/* Right Inspector Sidebar */}
-        <InspectorSidebar
-          settings={settings}
-          onUpdateSettings={setSettings}
-          audioDevices={audioDevices}
-        />
-
-        {/* Floating Teleprompter HUD */}
-        {settings.teleprompterVisible && (
-          <TeleprompterHUD
-            settings={settings}
-            onUpdateSettings={setSettings}
-            onClose={() =>
-              setSettings((prev) => ({ ...prev, teleprompterVisible: false }))
-            }
-          />
-        )}
-
-        {/* Blackmagic Cinema Scopes Modal */}
-        {isScopesOpen && (
-          <CinemaScopesModal
-            settings={settings}
-            onUpdateSettings={setSettings}
-            histogramBins={histogramBins}
-            clippingPercent={clippingPercent}
-            onClose={() => setIsScopesOpen(false)}
-          />
-        )}
-      </div>
-
-      {/* In-Browser Capture Library Drawer */}
-      <CaptureLibraryDrawer
-        isOpen={isLibraryOpen}
-        onClose={() => setIsLibraryOpen(false)}
-        takes={takes}
-        onSelectTakeForTrim={(t) => {
-          setSelectedTakeForTrim(t);
-          setIsLibraryOpen(false);
-        }}
-        onDeleteTake={handleDeleteTake}
-      />
-
-      {/* Timeline Trimmer & 1-Click Multi-Aspect Export Modal */}
-      {selectedTakeForTrim && (
-        <TrimTimelineModal
-          take={selectedTakeForTrim}
-          settings={settings}
-          onClose={() => setSelectedTakeForTrim(null)}
-          onSaveTrim={(updated) => {
-            setSelectedTakeForTrim(updated);
-            setTakes((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-          }}
+      {/* Instant Take Preview & Download Modal */}
+      {completedTake && (
+        <RecordedTakeModal
+          take={completedTake}
+          onClose={() => setCompletedTake(null)}
         />
       )}
 
-      {/* Always-On-Top Floating Face View & Recorder (Picture-in-Picture) */}
+      {/* Optional Always-On-Top Floating Face PiP Window */}
       {pipWindow && (
         <FloatingFacePip
           pipWindow={pipWindow}
@@ -618,6 +480,7 @@ export const StudioApp: React.FC = () => {
           isRecording={isRecording}
           recordingDuration={recordingDuration}
           isMirrored={settings.cameraMirrored}
+          isSharingEntireMonitor={isSharingEntireMonitor}
           onStopRecording={stopRecording}
           onStartRecording={startRecording}
           onToggleMic={handleToggleMic}

@@ -13,6 +13,8 @@ import {
   Rows,
   Columns,
   Layers,
+  Circle,
+  Square,
 } from 'lucide-react';
 import type { Route } from './+types/home';
 
@@ -28,7 +30,13 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-type SplitLayout = 'split-top' | 'split-bottom' | 'split-left' | 'split-right' | 'pip';
+type SplitLayout =
+  | 'split-top'
+  | 'split-left'
+  | 'float-round-right'
+  | 'float-round-left'
+  | 'float-square-right'
+  | 'float-square-left';
 
 const LAYOUT_INFO: Record<
   SplitLayout,
@@ -37,32 +45,38 @@ const LAYOUT_INFO: Record<
   'split-top': {
     label: 'Top / Bottom',
     modeTitle: 'Screen Top · Camera Bottom',
-    subtitle: 'High-visibility workspace with presenter reaction bar below',
-    icon: Rows,
-  },
-  'split-bottom': {
-    label: 'Bottom / Top',
-    modeTitle: 'Camera Top · Screen Bottom',
-    subtitle: 'Eye-line presenter lead with reference material below',
+    subtitle: '50/50 horizontal split with software on top and presenter below',
     icon: Rows,
   },
   'split-left': {
     label: 'Left / Right',
     modeTitle: 'Screen Left · Camera Right',
-    subtitle: 'Widescreen side-by-side with screen capture prioritized left',
+    subtitle: '50/50 vertical side-by-side presentation',
     icon: Columns,
   },
-  'split-right': {
-    label: 'Right / Left',
-    modeTitle: 'Camera Left · Screen Right',
-    subtitle: 'Widescreen side-by-side with presenter prioritized left',
-    icon: Columns,
+  'float-round-right': {
+    label: 'Round (Right)',
+    modeTitle: 'Full Screen · Round Camera (Right)',
+    subtitle: 'Full screen recording with circular presenter camera on the right',
+    icon: Circle,
   },
-  'pip': {
-    label: 'Floating PiP',
-    modeTitle: 'Full Screen · Floating Camera Bubble',
-    subtitle: 'Classic picture-in-picture circle bubble over your presentation',
-    icon: Layers,
+  'float-round-left': {
+    label: 'Round (Left)',
+    modeTitle: 'Full Screen · Round Camera (Left)',
+    subtitle: 'Full screen recording with circular presenter camera on the left',
+    icon: Circle,
+  },
+  'float-square-right': {
+    label: 'Square (Right)',
+    modeTitle: 'Full Screen · Square Camera (Right)',
+    subtitle: 'Full screen recording with crisp square presenter camera on the right',
+    icon: Square,
+  },
+  'float-square-left': {
+    label: 'Square (Left)',
+    modeTitle: 'Full Screen · Square Camera (Left)',
+    subtitle: 'Full screen recording with crisp square presenter camera on the left',
+    icon: Square,
   },
 };
 
@@ -211,36 +225,6 @@ export default function Home() {
                   </div>
                 )}
 
-                {selectedLayout === 'split-bottom' && (
-                  <div className="w-full h-full flex flex-col">
-                    {/* Top: Camera Feed */}
-                    <div className="w-full h-1/2 bg-[#131518] p-3 flex items-center justify-center relative border-b border-[#262B33]">
-                      <div className="absolute top-2 left-3 flex items-center gap-1.5 text-[10px] font-mono text-[#10B981]">
-                        <Camera className="w-3 h-3" /> CAMERA FEED (EYE-LINE)
-                      </div>
-                      <div className="w-14 h-14 rounded-full overflow-hidden bg-[#07080A] ring-2 ring-[#E5A93C]/40 flex items-center justify-center">
-                        <img src="/shotonce-icon.png" alt="ShotOnce Presenter" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="absolute bottom-2 right-3 text-[9px] font-mono text-[#5C6370]">
-                        OPTICAL WEBCAM SENSOR
-                      </div>
-                    </div>
-                    {/* Bottom: Screen Record */}
-                    <div className="w-full h-1/2 bg-[#0C0E12] p-3 flex flex-col justify-between">
-                      <div className="flex items-center justify-between text-[10px] font-mono text-[#5C6370]">
-                        <span className="flex items-center gap-1.5 text-[#E5A93C]">
-                          <Monitor className="w-3 h-3" /> SCREEN RECORDING
-                        </span>
-                        <span>1920 × 540</span>
-                      </div>
-                      <div className="space-y-1 font-mono text-[11px] text-[#969EAA]">
-                        <div className="text-purple-400 font-semibold">// Live screen display capture</div>
-                        <div>const stream = await navigator.mediaDevices.getDisplayMedia();</div>
-                      </div>
-                      <div className="text-[9px] font-mono text-[#5C6370]">DISPLAY SURFACE 01</div>
-                    </div>
-                  </div>
-                )}
 
                 {/* Vertical Split: Left & Right */}
                 {selectedLayout === 'split-left' && (
@@ -272,64 +256,127 @@ export default function Home() {
                   </div>
                 )}
 
-                {selectedLayout === 'split-right' && (
-                  <div className="w-full h-full flex flex-row">
-                    {/* Left: Camera Feed */}
-                    <div className="w-1/2 h-full bg-[#131518] p-3.5 flex flex-col items-center justify-center relative border-r border-[#262B33]">
-                      <div className="absolute top-3 left-3 text-[10px] font-mono text-[#10B981] flex items-center gap-1.5">
-                        <Camera className="w-3 h-3" /> CAMERA (LEFT)
-                      </div>
-                      <div className="w-16 h-16 rounded-full overflow-hidden bg-[#07080A] ring-2 ring-[#E5A93C]/40 flex items-center justify-center">
-                        <img src="/shotonce-icon.png" alt="ShotOnce Presenter" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="absolute bottom-3 text-[9px] font-mono text-[#5C6370]">
-                        960 × 1080
-                      </div>
-                    </div>
-                    {/* Right: Screen Record */}
-                    <div className="w-1/2 h-full bg-[#0C0E12] p-3.5 flex flex-col justify-between">
-                      <div className="text-[10px] font-mono text-[#E5A93C] flex items-center gap-1.5">
-                        <Monitor className="w-3 h-3" /> SCREEN (RIGHT)
-                      </div>
-                      <div className="space-y-1 font-mono text-[10px] text-[#969EAA]">
-                        <div className="text-purple-400 font-semibold">// Side-by-side mode</div>
-                        <div>ctx.drawImage(screen, ...);</div>
-                        <div className="text-[#5C6370]">50% width split</div>
-                      </div>
-                      <div className="text-[9px] font-mono text-[#5C6370]">960 × 1080</div>
-                    </div>
-                  </div>
-                )}
 
-                {/* PiP Mode */}
-                {selectedLayout === 'pip' && (
+                {/* Full Screen + Round Floating Cam (Right) */}
+                {selectedLayout === 'float-round-right' && (
                   <div className="w-full h-full bg-[#0C0E12] p-4 flex flex-col justify-between relative">
                     <div className="flex items-center justify-between text-[10px] font-mono text-[#5C6370]">
                       <span className="flex items-center gap-1.5 text-[#E5A93C]">
-                        <Monitor className="w-3 h-3" /> FULL SCREEN BACKGROUND
+                        <Monitor className="w-3 h-3" /> FULL SCREEN SHARE (1920 × 1080)
                       </span>
-                      <span>1920 × 1080</span>
+                      <span>ROUND CAM · RIGHT</span>
                     </div>
 
                     <div className="space-y-1.5 font-mono text-xs max-w-xs text-left">
-                      <div className="text-purple-400 font-semibold">const rec = recordDualStream();</div>
-                      <div className="text-[#969EAA]">rec.setBubblePosition('bottom-right');</div>
-                      <div className="text-[#E5A93C]">rec.start();</div>
+                      <div className="text-purple-400 font-semibold">// Full screen recording</div>
+                      <div className="text-[#969EAA]">const screen = getDisplayMedia();</div>
+                      <div className="text-[#E5A93C]">compositeFloatingCam('round', 'right');</div>
                     </div>
 
                     <div className="text-[9px] font-mono text-[#5C6370]">
-                      PICTURE-IN-PICTURE OVERLAY
+                      FULL BACKGROUND DISPLAY
                     </div>
 
-                    {/* Floating camera bubble */}
+                    {/* Floating round camera */}
                     <div className="absolute bottom-4 right-4 w-16 h-16 rounded-full overflow-hidden bg-[#07080A] ring-2 ring-[#E5A93C] shadow-2xl flex items-center justify-center">
                       <img src="/shotonce-icon.png" alt="ShotOnce Presenter" className="w-full h-full object-cover" />
                     </div>
                   </div>
                 )}
+
+                {/* Full Screen + Round Floating Cam (Left) */}
+                {selectedLayout === 'float-round-left' && (
+                  <div className="w-full h-full bg-[#0C0E12] p-4 flex flex-col justify-between relative">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-[#5C6370]">
+                      <span className="flex items-center gap-1.5 text-[#E5A93C]">
+                        <Monitor className="w-3 h-3" /> FULL SCREEN SHARE (1920 × 1080)
+                      </span>
+                      <span>ROUND CAM · LEFT</span>
+                    </div>
+
+                    <div className="space-y-1.5 font-mono text-xs max-w-xs text-left">
+                      <div className="text-purple-400 font-semibold">// Full screen recording</div>
+                      <div className="text-[#969EAA]">const screen = getDisplayMedia();</div>
+                      <div className="text-[#E5A93C]">compositeFloatingCam('round', 'left');</div>
+                    </div>
+
+                    <div className="text-[9px] font-mono text-[#5C6370]">
+                      FULL BACKGROUND DISPLAY
+                    </div>
+
+                    {/* Floating round camera */}
+                    <div className="absolute bottom-4 left-4 w-16 h-16 rounded-full overflow-hidden bg-[#07080A] ring-2 ring-[#E5A93C] shadow-2xl flex items-center justify-center">
+                      <img src="/shotonce-icon.png" alt="ShotOnce Presenter" className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Full Screen + Square Floating Cam (Right) */}
+                {selectedLayout === 'float-square-right' && (
+                  <div className="w-full h-full bg-[#0C0E12] p-4 flex flex-col justify-between relative">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-[#5C6370]">
+                      <span className="flex items-center gap-1.5 text-[#E5A93C]">
+                        <Monitor className="w-3 h-3" /> FULL SCREEN SHARE (1920 × 1080)
+                      </span>
+                      <span>SQUARE CAM · RIGHT</span>
+                    </div>
+
+                    <div className="space-y-1.5 font-mono text-xs max-w-xs text-left">
+                      <div className="text-purple-400 font-semibold">// Full screen recording</div>
+                      <div className="text-[#969EAA]">const screen = getDisplayMedia();</div>
+                      <div className="text-[#E5A93C]">compositeFloatingCam('square', 'right');</div>
+                    </div>
+
+                    <div className="text-[9px] font-mono text-[#5C6370]">
+                      FULL BACKGROUND DISPLAY
+                    </div>
+
+                    {/* Floating square camera */}
+                    <div className="absolute bottom-4 right-4 w-16 h-16 rounded-md overflow-hidden bg-[#131518] ring-2 ring-[#E5A93C] shadow-2xl flex flex-col items-center justify-center p-1">
+                      <div className="w-full h-full bg-[#1C2026] rounded-sm flex flex-col items-center justify-center text-center p-1 border border-[#262B33]">
+                        <div className="w-7 h-7 rounded-full overflow-hidden bg-[#07080A] ring-1 ring-[#E5A93C]/40 mb-1">
+                          <img src="/shotonce-icon.png" alt="Presenter" className="w-full h-full object-cover" />
+                        </div>
+                        <span className="text-[7.5px] font-mono font-bold text-[#E5A93C] tracking-wide uppercase">SQUARE CAM</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Full Screen + Square Floating Cam (Left) */}
+                {selectedLayout === 'float-square-left' && (
+                  <div className="w-full h-full bg-[#0C0E12] p-4 flex flex-col justify-between relative">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-[#5C6370]">
+                      <span className="flex items-center gap-1.5 text-[#E5A93C]">
+                        <Monitor className="w-3 h-3" /> FULL SCREEN SHARE (1920 × 1080)
+                      </span>
+                      <span>SQUARE CAM · LEFT</span>
+                    </div>
+
+                    <div className="space-y-1.5 font-mono text-xs max-w-xs text-left">
+                      <div className="text-purple-400 font-semibold">// Full screen recording</div>
+                      <div className="text-[#969EAA]">const screen = getDisplayMedia();</div>
+                      <div className="text-[#E5A93C]">compositeFloatingCam('square', 'left');</div>
+                    </div>
+
+                    <div className="text-[9px] font-mono text-[#5C6370]">
+                      FULL BACKGROUND DISPLAY
+                    </div>
+
+                    {/* Floating square camera */}
+                    <div className="absolute bottom-4 left-4 w-16 h-16 rounded-md overflow-hidden bg-[#131518] ring-2 ring-[#E5A93C] shadow-2xl flex flex-col items-center justify-center p-1">
+                      <div className="w-full h-full bg-[#1C2026] rounded-sm flex flex-col items-center justify-center text-center p-1 border border-[#262B33]">
+                        <div className="w-7 h-7 rounded-full overflow-hidden bg-[#07080A] ring-1 ring-[#E5A93C]/40 mb-1">
+                          <img src="/shotonce-icon.png" alt="Presenter" className="w-full h-full object-cover" />
+                        </div>
+                        <span className="text-[7.5px] font-mono font-bold text-[#E5A93C] tracking-wide uppercase">SQUARE CAM</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Split Layout Switcher */}
+              {/* Layout Switcher */}
               <div className="pt-3">
                 <div className="flex justify-between items-center text-xs font-mono text-[#969EAA] mb-2.5">
                   <span>Active Mode:</span>
@@ -338,27 +385,34 @@ export default function Home() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                  {(['split-top', 'split-bottom', 'split-left', 'split-right', 'pip'] as SplitLayout[]).map(
-                    (layout) => {
-                      const Icon = LAYOUT_INFO[layout].icon;
-                      const active = selectedLayout === layout;
-                      return (
-                        <button
-                          key={layout}
-                          onClick={() => setSelectedLayout(layout)}
-                          className={`py-2 px-1 rounded text-xs font-mono font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                            active
-                              ? 'bg-[#E5A93C] text-[#0D0E11]'
-                              : 'bg-[#1C2026] text-[#969EAA] hover:text-[#F3F5F7]'
-                          }`}
-                        >
-                          <Icon className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate">{LAYOUT_INFO[layout].label}</span>
-                        </button>
-                      );
-                    }
-                  )}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                  {(
+                    [
+                      'split-top',
+                      'split-left',
+                      'float-round-right',
+                      'float-round-left',
+                      'float-square-right',
+                      'float-square-left',
+                    ] as SplitLayout[]
+                  ).map((layout) => {
+                    const Icon = LAYOUT_INFO[layout].icon;
+                    const active = selectedLayout === layout;
+                    return (
+                      <button
+                        key={layout}
+                        onClick={() => setSelectedLayout(layout)}
+                        className={`py-2 px-1 rounded text-xs font-mono font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                          active
+                            ? 'bg-[#E5A93C] text-[#0D0E11]'
+                            : 'bg-[#1C2026] text-[#969EAA] hover:text-[#F3F5F7]'
+                        }`}
+                      >
+                        <Icon className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{LAYOUT_INFO[layout].label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -425,19 +479,32 @@ export default function Home() {
             <div className="mt-6 text-[11px] font-mono text-[#5C6370]">Side-by-Side Demos</div>
           </div>
 
-          {/* Right / Left & PiP */}
+          {/* Card 3: Round Floating Cam */}
           <div className="p-6 rounded-xl bg-[#131518] flex flex-col justify-between">
             <div>
-              <div className="text-xs font-mono text-[#E5A93C] mb-3">PICTURE-IN-PICTURE</div>
+              <div className="text-xs font-mono text-[#E5A93C] mb-3">ROUND FLOATING CAM</div>
               <h3 className="text-base font-bold text-[#F3F5F7] font-['Outfit'] mb-2">
-                Floating Bubble Overlay
+                Full Screen · Round Cam
               </h3>
               <p className="text-xs text-[#969EAA] leading-relaxed">
-                Maximize the entire screen recording canvas with a sleek, circular or rounded presenter bubble
-                floated in any quadrant.
+                Full-width screen recording with a circular presenter camera floating cleanly on either the left or right side.
               </p>
             </div>
-            <div className="mt-6 text-[11px] font-mono text-[#5C6370]">Classic PiP Mode</div>
+            <div className="mt-6 text-[11px] font-mono text-[#5C6370]">Keynotes &amp; Demos</div>
+          </div>
+
+          {/* Card 4: Square Floating Cam */}
+          <div className="p-6 rounded-xl bg-[#131518] flex flex-col justify-between">
+            <div>
+              <div className="text-xs font-mono text-[#E5A93C] mb-3">SQUARE FLOATING CAM</div>
+              <h3 className="text-base font-bold text-[#F3F5F7] font-['Outfit'] mb-2">
+                Full Screen · Square Cam
+              </h3>
+              <p className="text-xs text-[#969EAA] leading-relaxed">
+                Full-width screen recording with a modern rounded squircle camera floating on either the left or right side.
+              </p>
+            </div>
+            <div className="mt-6 text-[11px] font-mono text-[#5C6370]">Modern Screencasts</div>
           </div>
         </div>
       </section>
@@ -499,23 +566,22 @@ export default function Home() {
                 Web Recording Studio
               </h3>
               <p className="text-sm text-[#969EAA] leading-relaxed mb-6">
-                Record your screen and webcam in clean split-screen (top/bottom, left/right) or PiP mode.
-                Wrap captures in curated backdrops, read from the eye-line teleprompter HUD, and export
-                high-definition video directly to disk.
+                Record your screen and webcam together in a clean 50/50 split (top/bottom or left/right).
+                Zero clutter, instant in-browser recording, and direct video export to disk.
               </p>
 
               <div className="space-y-2 text-xs font-mono text-[#969EAA] mb-8">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#E5A93C]" />
-                  <span>50/50 dual-source split screen &amp; PiP bubble layouts</span>
+                  <span>Simultaneous screen sharing &amp; camera feed</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#E5A93C]" />
-                  <span>Eye-line auto-scrolling teleprompter HUD</span>
+                  <span>Split-screen layouts: top/bottom &amp; left/right</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#E5A93C]" />
-                  <span>Curated backdrops, padding &amp; corner radius controls</span>
+                  <span>100% on-device processing with zero cloud delay</span>
                 </div>
               </div>
             </div>

@@ -141,7 +141,7 @@ export class CanvasCompositor {
     } else if (layout === 'split-left') {
       // Split Side-by-Side: Left is Screen Record, Right is Camera Feed
       const halfW = winW / 2;
-      this.drawScreenToRect(ctx, screenElement, winX, contentY, halfW, contentH, scaleFactor);
+      this.drawScreenToRect(ctx, screenElement, winX, contentY, halfW, contentH, scaleFactor, true);
       this.drawCameraToRect(ctx, cameraElement, winX + halfW, contentY, halfW, contentH, settings.cameraMirrored, scaleFactor);
 
       // Clean divider
@@ -155,7 +155,7 @@ export class CanvasCompositor {
       // Split Side-by-Side: Left is Camera Feed, Right is Screen Record
       const halfW = winW / 2;
       this.drawCameraToRect(ctx, cameraElement, winX, contentY, halfW, contentH, settings.cameraMirrored, scaleFactor);
-      this.drawScreenToRect(ctx, screenElement, winX + halfW, contentY, halfW, contentH, scaleFactor);
+      this.drawScreenToRect(ctx, screenElement, winX + halfW, contentY, halfW, contentH, scaleFactor, true);
 
       // Clean divider
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
@@ -163,7 +163,30 @@ export class CanvasCompositor {
       ctx.beginPath();
       ctx.moveTo(winX + halfW, contentY);
       ctx.lineTo(winX + halfW, contentY + contentH);
-      ctx.stroke();
+    } else if (
+      layout === 'float-round-right' ||
+      layout === 'float-round-left' ||
+      layout === 'float-square-right' ||
+      layout === 'float-square-left'
+    ) {
+      // Full Screen Share with Floating Round or Square Camera on Left or Right
+      this.drawScreenToRect(ctx, screenElement, winX, contentY, winW, contentH, scaleFactor);
+
+      const shape: 'round' | 'square' = layout.includes('round') ? 'round' : 'square';
+      const side: 'left' | 'right' = layout.includes('left') ? 'left' : 'right';
+
+      this.drawFloatingCameraView(
+        ctx,
+        cameraElement,
+        winX,
+        contentY,
+        winW,
+        contentH,
+        shape,
+        side,
+        settings.cameraMirrored,
+        scaleFactor
+      );
     } else if (layout === 'fullscreen') {
       // Solo Camera Fullscreen
       this.drawCameraToRect(ctx, cameraElement, winX, contentY, winW, contentH, settings.cameraMirrored, scaleFactor);
@@ -184,8 +207,11 @@ export class CanvasCompositor {
         this.drawScreenStandbyUI(ctx, winX, contentY, winW, contentH, scaleFactor);
       }
 
-      // PiP Overlay
-      if (layout !== 'hidden') {
+      // Floating PiP Overlay: Only draw onto the master canvas if explicitly enabled to be burned in
+      const isFloatingPip = layout === 'circle' || layout === 'rounded-pip';
+      const shouldDrawPip = !isFloatingPip || settings.burnFloatingPipInRecording;
+
+      if (layout !== 'hidden' && shouldDrawPip) {
         this.drawCamera(
           ctx,
           settings,
@@ -582,10 +608,11 @@ export class CanvasCompositor {
     y: number,
     w: number,
     h: number,
-    scaleFactor: number
+    scaleFactor: number,
+    alignLeft: boolean = false
   ) {
     if (screenElement && screenElement.readyState >= 2) {
-      this.drawVideoCover(ctx, screenElement, x, y, w, h, false);
+      this.drawVideoCover(ctx, screenElement, x, y, w, h, false, alignLeft ? 'left' : 'center');
     } else {
       this.drawScreenStandbyUI(ctx, x, y, w, h, scaleFactor);
     }
@@ -602,7 +629,7 @@ export class CanvasCompositor {
     scaleFactor: number
   ) {
     if (cameraElement && cameraElement.readyState >= 2) {
-      this.drawVideoCover(ctx, cameraElement, x, y, w, h, isMirrored);
+      this.drawVideoCover(ctx, cameraElement, x, y, w, h, isMirrored, 'center');
     } else {
       ctx.fillStyle = '#131518';
       ctx.fillRect(x, y, w, h);
@@ -620,7 +647,8 @@ export class CanvasCompositor {
     y: number,
     w: number,
     h: number,
-    mirrored: boolean
+    mirrored: boolean,
+    horizontalAlign: 'center' | 'left' = 'center'
   ) {
     const vW = video.videoWidth || 1920;
     const vH = video.videoHeight || 1080;
@@ -634,7 +662,7 @@ export class CanvasCompositor {
 
     if (videoAspect > targetAspect) {
       drawW = h * videoAspect;
-      drawX = x - (drawW - w) / 2;
+      drawX = horizontalAlign === 'left' ? x : x - (drawW - w) / 2;
     } else {
       drawH = w / videoAspect;
       drawY = y - (drawH - h) / 2;
@@ -652,6 +680,78 @@ export class CanvasCompositor {
     }
 
     ctx.drawImage(video, drawX, drawY, drawW, drawH);
+    ctx.restore();
+  }
+
+  private drawFloatingCameraView(
+    ctx: CanvasRenderingContext2D,
+    cameraElement: HTMLVideoElement | null,
+    winX: number,
+    contentY: number,
+    winW: number,
+    contentH: number,
+    shape: 'round' | 'square',
+    side: 'left' | 'right',
+    mirrored: boolean,
+    scaleFactor: number
+  ) {
+    const pipSize = Math.round(Math.min(winW, contentH) * 0.32);
+    const margin = Math.round(40 * scaleFactor);
+
+    const pipX = side === 'left' ? winX + margin : winX + winW - pipSize - margin;
+    const pipY = contentY + contentH - pipSize - margin;
+    const isRound = shape === 'round';
+    // Square has crisp modern 8px corner radius, round is a mathematically true circle
+    const squareRadius = Math.round(8 * scaleFactor);
+
+    const applyShapePath = () => {
+      ctx.beginPath();
+      if (isRound) {
+        ctx.arc(pipX + pipSize / 2, pipY + pipSize / 2, pipSize / 2, 0, Math.PI * 2);
+      } else {
+        roundRectPath(ctx, pipX, pipY, pipSize, pipSize, squareRadius);
+      }
+    };
+
+    ctx.save();
+
+    // Subtle drop shadow for floating separation over screen share
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+    ctx.shadowBlur = Math.round(28 * scaleFactor);
+    ctx.shadowOffsetY = Math.round(8 * scaleFactor);
+
+    // Background tile
+    applyShapePath();
+    ctx.fillStyle = '#131518';
+    ctx.fill();
+
+    ctx.restore(); // end shadow
+
+    // Clip & draw camera video
+    ctx.save();
+    applyShapePath();
+    ctx.clip();
+
+    if (cameraElement && cameraElement.readyState >= 2) {
+      this.drawVideoCover(ctx, cameraElement, pipX, pipY, pipSize, pipSize, mirrored);
+    } else {
+      ctx.fillStyle = '#131518';
+      ctx.fillRect(pipX, pipY, pipSize, pipSize);
+      ctx.fillStyle = '#969EAA';
+      ctx.font = `${Math.round(13 * scaleFactor)}px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Camera Inactive', pipX + pipSize / 2, pipY + pipSize / 2);
+    }
+
+    ctx.restore(); // end clip
+
+    // Precision rim border
+    ctx.save();
+    applyShapePath();
+    ctx.strokeStyle = '#E5A93C';
+    ctx.lineWidth = Math.max(2.5, Math.round(3 * scaleFactor));
+    ctx.stroke();
     ctx.restore();
   }
 }

@@ -117,14 +117,14 @@ Our engine runs completely client-side via WebCodecs and WebRTC.`,
 
 export const DEFAULT_STUDIO_SETTINGS: StudioSettings = {
   backdropType: 'preset',
-  backdropPreset: 'shotonce-mesh',
+  backdropPreset: 'deep-obsidian',
   customBackdropUrl: null,
-  padding: 48,
-  cornerRadius: 18,
-  shadowPreset: 'bold',
-  windowFrame: 'macos',
+  padding: 0,
+  cornerRadius: 0,
+  shadowPreset: 'none',
+  windowFrame: 'borderless',
 
-  cameraLayout: 'circle',
+  cameraLayout: 'split-top',
   cameraScale: 24,
   cameraPosition: { x: 82, y: 78 }, // bottom right percentage
   cameraMirrored: true,
@@ -150,6 +150,9 @@ export const DEFAULT_STUDIO_SETTINGS: StudioSettings = {
   teleprompterFontSize: 18,
   teleprompterText: TELEPROMPTER_TEMPLATES[0].content,
   teleprompterMirrored: false,
+
+  burnFloatingPipInRecording: false,
+  autoOpenPipOnRecord: false,
 
   activeDerivations: ['16:9', '9:16', '1:1', '4:5'],
   previewAspectRatio: 'all',

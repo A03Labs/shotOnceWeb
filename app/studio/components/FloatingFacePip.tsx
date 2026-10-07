@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Square, Mic, MicOff, VideoOff, Circle } from 'lucide-react';
+import { Square, Mic, MicOff, VideoOff, Circle, X, Eye, EyeOff } from 'lucide-react';
 
 interface FloatingFacePipProps {
   pipWindow: Window | null;
@@ -10,6 +10,7 @@ interface FloatingFacePipProps {
   isRecording: boolean;
   recordingDuration: number;
   isMirrored: boolean;
+  isSharingEntireMonitor?: boolean;
   onStopRecording: () => void;
   onStartRecording: () => void;
   onToggleMic: () => void;
@@ -24,6 +25,7 @@ export const FloatingFacePip: React.FC<FloatingFacePipProps> = ({
   isRecording,
   recordingDuration,
   isMirrored,
+  isSharingEntireMonitor = false,
   onStopRecording,
   onStartRecording,
   onToggleMic,
@@ -31,6 +33,7 @@ export const FloatingFacePip: React.FC<FloatingFacePipProps> = ({
 }) => {
   const pipVideoRef = useRef<HTMLVideoElement | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const hoverTimerRef = useRef<number | null>(null);
 
   // Sync camera stream to PiP video element
@@ -118,7 +121,7 @@ export const FloatingFacePip: React.FC<FloatingFacePipProps> = ({
           transition: 'border-radius 0.2s ease',
         }}
       >
-        {hasCamera && cameraStream ? (
+        {hasCamera && cameraStream && !isMinimized ? (
           <video
             ref={pipVideoRef}
             autoPlay
@@ -141,10 +144,17 @@ export const FloatingFacePip: React.FC<FloatingFacePipProps> = ({
               justifyContent: 'center',
               color: '#969EAA',
               gap: '6px',
+              padding: '16px',
             }}
           >
-            <VideoOff style={{ width: '26px', height: '26px', opacity: 0.6 }} />
-            <span style={{ fontSize: '11px', fontFamily: 'monospace' }}>Camera Inactive</span>
+            {isMinimized ? (
+              <EyeOff style={{ width: '22px', height: '22px', color: '#E5A93C' }} />
+            ) : (
+              <VideoOff style={{ width: '26px', height: '26px', opacity: 0.6 }} />
+            )}
+            <span style={{ fontSize: '11px', fontFamily: 'monospace' }}>
+              {isMinimized ? 'Face Preview Hidden' : 'Camera Inactive'}
+            </span>
           </div>
         )}
 
@@ -157,7 +167,7 @@ export const FloatingFacePip: React.FC<FloatingFacePipProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            background: 'rgba(7, 8, 10, 0.82)',
+            background: 'rgba(7, 8, 10, 0.85)',
             padding: '4px 8px',
             borderRadius: '8px',
             backdropFilter: 'blur(8px)',
@@ -189,28 +199,82 @@ export const FloatingFacePip: React.FC<FloatingFacePipProps> = ({
           </span>
         </div>
 
-        {/* Brand Badge (Fades out when recording) */}
+        {/* Action Controls: Minimize Face & Close PiP */}
         <div
           style={{
             position: 'absolute',
             top: '8px',
             right: '8px',
-            fontSize: '9px',
-            fontFamily: 'JetBrains Mono, monospace',
-            color: '#E5A93C',
-            background: 'rgba(7, 8, 10, 0.75)',
-            padding: '3px 6px',
-            borderRadius: '6px',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
             opacity: showControls ? 1 : 0,
-            pointerEvents: 'none',
+            pointerEvents: showControls ? 'auto' : 'none',
             transition: 'opacity 0.25s ease',
           }}
         >
-          ShotOnce
+          <button
+            onClick={() => setIsMinimized((prev) => !prev)}
+            title={isMinimized ? 'Show Face Preview' : 'Hide Face Preview (Keep Controls)'}
+            style={{
+              background: 'rgba(28, 32, 38, 0.85)',
+              color: '#F3F5F7',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '4px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {isMinimized ? (
+              <Eye style={{ width: '12px', height: '12px', color: '#E5A93C' }} />
+            ) : (
+              <EyeOff style={{ width: '12px', height: '12px' }} />
+            )}
+          </button>
+
+          <button
+            onClick={onClosePip}
+            title="Close Floating PiP"
+            style={{
+              background: 'rgba(28, 32, 38, 0.85)',
+              color: '#969EAA',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '4px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <X style={{ width: '12px', height: '12px' }} />
+          </button>
         </div>
+
+        {/* Entire Screen Recording Warning Banner */}
+        {isSharingEntireMonitor && showControls && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '40px',
+              left: '8px',
+              right: '8px',
+              background: 'rgba(229, 169, 60, 0.18)',
+              border: '1px solid rgba(229, 169, 60, 0.4)',
+              borderRadius: '6px',
+              padding: '4px 8px',
+              fontSize: '10px',
+              color: '#E5A93C',
+              lineHeight: 1.3,
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            Entire screen shared: this PiP will appear in video. Share a <strong>Window</strong> to exclude it.
+          </div>
+        )}
 
         {/* Bottom Floating Controls Overlay (Fades out completely during recording to keep video clean) */}
         <div
