@@ -4,9 +4,12 @@ import {
   Monitor,
   Smartphone,
   Apple,
+  ArrowRight,
   X,
   ExternalLink,
-  ArrowRight,
+  ShieldCheck,
+  Video,
+  Sparkles,
 } from 'lucide-react';
 import type { Route } from './+types/home';
 
@@ -28,11 +31,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#07080A] text-[#F3F5F7] font-sans antialiased selection:bg-[#E5A93C] selection:text-[#0D0E11]">
       {/* ================= NAVIGATION ================= */}
-      <header className="w-full bg-[#07080A] py-5 px-6 sm:px-12">
+      <header className="w-full bg-[#07080A]/80 backdrop-blur-md sticky top-0 z-40 border-b border-[#181B22] px-6 sm:px-12 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* Brand */}
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#131518] shrink-0">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#131518] border border-[#262B33] shrink-0 transition-transform group-hover:scale-105">
               <img src="/shotonce-icon.png" alt="ShotOnce" className="w-full h-full object-cover" />
             </div>
             <span className="font-extrabold text-base tracking-tight text-[#F3F5F7] font-['Outfit']">
@@ -40,51 +43,49 @@ export default function Home() {
             </span>
           </Link>
 
-          {/* Links */}
+          {/* Nav Links */}
           <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-[#969EAA]">
-            <a href="#layouts" className="hover:text-[#F3F5F7] transition-colors">
-              Split Layouts
+            <a href="#capabilities" className="hover:text-[#F3F5F7] transition-colors">
+              Capabilities
             </a>
-            <a href="#apps" className="hover:text-[#F3F5F7] transition-colors">
-              Mobile App
+            <a href="#platforms" className="hover:text-[#F3F5F7] transition-colors">
+              Platforms
             </a>
-            <Link to="/studio" className="hover:text-[#F3F5F7] transition-colors">
-              Web Studio
-            </Link>
             <Link to="/privacy" className="hover:text-[#F3F5F7] transition-colors">
               Privacy
             </Link>
           </nav>
 
-          {/* Primary Action */}
+          {/* CTA Action */}
           <div className="flex items-center gap-3">
             <Link
               to="/studio"
-              className="px-4 py-2 rounded-lg text-xs font-bold bg-[#E5A93C] hover:bg-[#FFB834] text-[#0D0E11] transition-colors"
+              className="px-4 py-2 rounded-lg text-xs font-bold bg-[#E5A93C] hover:bg-[#FFB834] text-[#0D0E11] flex items-center gap-1.5 transition-all shadow-sm hover:shadow-[#E5A93C]/20"
             >
-              Open Studio
+              <Monitor className="w-3.5 h-3.5" />
+              <span>Open Studio</span>
             </Link>
           </div>
         </div>
       </header>
 
       {/* ================= HERO ================= */}
-      <section className="relative pt-20 sm:pt-28 pb-24 sm:pb-32 px-6 sm:px-12 max-w-5xl mx-auto text-center flex flex-col items-center">
+      <section className="relative pt-20 sm:pt-28 pb-20 sm:pb-28 px-6 sm:px-12 max-w-5xl mx-auto text-center flex flex-col items-center">
         {/* Subtle Ambient Backlight Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] max-w-full h-[320px] bg-[#E5A93C]/5 blur-[120px] rounded-full pointer-events-none -z-10" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] max-w-full h-[320px] bg-[#E5A93C]/5 blur-[130px] rounded-full pointer-events-none -z-10" />
 
-        {/* Eyebrow Badge */}
+        {/* Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#131518] border border-[#262B33] text-xs font-mono text-[#E5A93C] mb-6 shadow-sm">
           <span className="w-1.5 h-1.5 rounded-full bg-[#E5A93C] animate-pulse" />
           <span>Dual-Source Split Screen Recording</span>
         </div>
 
-        {/* Headline */}
+        {/* Main Headline */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#F3F5F7] font-['Outfit'] leading-[1.08] max-w-4xl">
           Screen &amp; face. Perfectly split.
         </h1>
 
-        {/* Subtitle / Description */}
+        {/* Description */}
         <p className="mt-6 text-base sm:text-lg text-[#969EAA] leading-relaxed max-w-2xl mx-auto">
           Record your screen demo and camera video together in a clean 50/50 split — top and bottom,
           or left and right. Swap feeds on the fly or toggle to a floating camera bubble. All encoded
@@ -118,216 +119,134 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Note */}
+        {/* Quiet Trust Line */}
         <div className="mt-8 text-xs font-mono text-[#5C6370]">
           Zero cloud uploads • 100% on-device processing • No account required
         </div>
       </section>
 
-      {/* ================= SPLIT LAYOUTS SECTION ================= */}
-      <section id="layouts" className="py-20 px-6 sm:px-12 max-w-6xl mx-auto">
-        <div className="text-left max-w-xl mb-12">
-          <div className="text-xs font-mono text-[#E5A93C] mb-2">Dual-Source Compositing</div>
+      {/* ================= CAPABILITIES (UNIFIED & INTENTIONAL) ================= */}
+      <section id="capabilities" className="py-20 px-6 sm:px-12 max-w-6xl mx-auto border-t border-[#181B22]">
+        <div className="max-w-2xl mb-12">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F3F5F7] font-['Outfit']">
-            Split screens for any storytelling style.
+            Engineered for seamless screencasting.
           </h2>
           <p className="mt-3 text-sm text-[#969EAA] leading-relaxed">
-            Present code, design workflows, or video walkthroughs with both your screen and camera feed
-            rendered simultaneously in real-time. Switch layouts instantly without pausing your recording.
+            No cloud queues, no heavy background daemons, and zero subscription gating. Everything renders and encodes straight from your local hardware.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
-          {/* Top / Bottom */}
-          <div className="p-6 rounded-xl bg-[#131518] flex flex-col justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* 1. Dual Stream Compositor */}
+          <div className="p-6 rounded-xl bg-[#0F1116] border border-[#1E222A] flex flex-col justify-between">
             <div>
-              <div className="text-xs font-mono text-[#E5A93C] mb-3">TOP / BOTTOM</div>
+              <div className="w-8 h-8 rounded-lg bg-[#E5A93C]/10 text-[#E5A93C] flex items-center justify-center mb-4">
+                <Video className="w-4 h-4" />
+              </div>
               <h3 className="text-base font-bold text-[#F3F5F7] font-['Outfit'] mb-2">
-                Screen Top · Camera Bottom
+                GPU hardware compositing
               </h3>
               <p className="text-xs text-[#969EAA] leading-relaxed">
-                Clean 50% horizontal partition. Prioritizes your wide software workspace on top with your
-                presenter reaction view underneath.
+                Merges your desktop screen share and camera feed in real-time at 60 frames per second. Video and microphone audio remain locked in sync with zero drift.
               </p>
             </div>
-            <div className="mt-6 text-[11px] font-mono text-[#5C6370]">Tutorials &amp; Live Coding</div>
+            <div className="mt-6 text-[11px] font-mono text-[#5C6370]">WebCodecs &amp; WebGL Engine</div>
           </div>
 
-          {/* Bottom / Top */}
-          <div className="p-6 rounded-xl bg-[#1C2026] flex flex-col justify-between">
+          {/* 2. Multi-Aspect Derivations */}
+          <div className="p-6 rounded-xl bg-[#0F1116] border border-[#1E222A] flex flex-col justify-between">
             <div>
-              <div className="text-xs font-mono text-[#E5A93C] mb-3">BOTTOM / TOP</div>
+              <div className="w-8 h-8 rounded-lg bg-[#E5A93C]/10 text-[#E5A93C] flex items-center justify-center mb-4">
+                <Sparkles className="w-4 h-4" />
+              </div>
               <h3 className="text-base font-bold text-[#F3F5F7] font-['Outfit'] mb-2">
-                Camera Top · Screen Bottom
+                Single take, multi-aspect export
               </h3>
               <p className="text-xs text-[#969EAA] leading-relaxed">
-                Eye-line presenter lead. Perfect for high-engagement keynote intros, customer feedback reviews,
-                and lecture walkthroughs.
+                Record once on your desktop. Derive widescreen 16:9 for YouTube walkthroughs and vertical 9:16 for Reels and TikTok simultaneously without re-shooting.
               </p>
             </div>
-            <div className="mt-6 text-[11px] font-mono text-[#E5A93C]">Keynotes &amp; Direct Talks</div>
+            <div className="mt-6 text-[11px] font-mono text-[#5C6370]">16:9 • 9:16 • 1:1 • 4:5</div>
           </div>
 
-          {/* Left / Right */}
-          <div className="p-6 rounded-xl bg-[#131518] flex flex-col justify-between">
+          {/* 3. 100% On-Device Privacy */}
+          <div className="p-6 rounded-xl bg-[#0F1116] border border-[#1E222A] flex flex-col justify-between">
             <div>
-              <div className="text-xs font-mono text-[#E5A93C] mb-3">SIDE-BY-SIDE</div>
+              <div className="w-8 h-8 rounded-lg bg-[#10B981]/10 text-[#10B981] flex items-center justify-center mb-4">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
               <h3 className="text-base font-bold text-[#F3F5F7] font-['Outfit'] mb-2">
-                Screen Left · Camera Right
+                Absolute on-device privacy
               </h3>
               <p className="text-xs text-[#969EAA] leading-relaxed">
-                Vertical 50% split. Balances your desktop window with an uncropped full-height camera portrait
-                for natural pair-programming feel.
+                Your camera, microphone, and proprietary code never touch an external server. Video files encode straight to your local disk with instant availability.
               </p>
             </div>
-            <div className="mt-6 text-[11px] font-mono text-[#5C6370]">Side-by-Side Demos</div>
-          </div>
-
-          {/* Card 3: Round Floating Cam */}
-          <div className="p-6 rounded-xl bg-[#131518] flex flex-col justify-between">
-            <div>
-              <div className="text-xs font-mono text-[#E5A93C] mb-3">ROUND FLOATING CAM</div>
-              <h3 className="text-base font-bold text-[#F3F5F7] font-['Outfit'] mb-2">
-                Full Screen · Round Cam
-              </h3>
-              <p className="text-xs text-[#969EAA] leading-relaxed">
-                Full-width screen recording with a circular presenter camera floating cleanly on either the left or right side.
-              </p>
-            </div>
-            <div className="mt-6 text-[11px] font-mono text-[#5C6370]">Keynotes &amp; Demos</div>
-          </div>
-
-          {/* Card 4: Square Floating Cam */}
-          <div className="p-6 rounded-xl bg-[#131518] flex flex-col justify-between">
-            <div>
-              <div className="text-xs font-mono text-[#E5A93C] mb-3">SQUARE FLOATING CAM</div>
-              <h3 className="text-base font-bold text-[#F3F5F7] font-['Outfit'] mb-2">
-                Full Screen · Square Cam
-              </h3>
-              <p className="text-xs text-[#969EAA] leading-relaxed">
-                Full-width screen recording with a modern rounded squircle camera floating on either the left or right side.
-              </p>
-            </div>
-            <div className="mt-6 text-[11px] font-mono text-[#5C6370]">Modern Screencasts</div>
+            <div className="mt-6 text-[11px] font-mono text-[#10B981]">100% Client-Side Processing</div>
           </div>
         </div>
       </section>
 
-      {/* ================= PLATFORMS: MOBILE & WEB ================= */}
-      <section id="apps" className="py-20 px-6 sm:px-12 max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
-          {/* Mobile Instrument Card */}
-          <div className="p-8 rounded-xl bg-[#131518] flex flex-col justify-between">
+      {/* ================= PLATFORMS: DESKTOP & MOBILE ================= */}
+      <section id="platforms" className="py-20 px-6 sm:px-12 max-w-6xl mx-auto border-t border-[#181B22]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Web Studio */}
+          <div className="p-8 rounded-xl bg-[#0F1116] border border-[#1E222A] flex flex-col justify-between">
             <div>
-              <div className="text-xs font-mono text-[#E5A93C] mb-2">iOS &amp; Android</div>
-              <h3 className="text-2xl font-bold text-[#F3F5F7] font-['Outfit'] mb-4">
-                Mobile Camera Instrument
-              </h3>
-              <p className="text-sm text-[#969EAA] leading-relaxed mb-6">
-                Turn your phone into a calibrated camera instrument. Full hardware sensor control with
-                ProRes/Camera2, manual shutter angles, zebra exposure guides, and stereo audio monitors.
-              </p>
-
-              <div className="space-y-2 text-xs font-mono text-[#969EAA] mb-8">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E5A93C]" />
-                  <span>ProRes Log and Cinema Warm 3200K profiles</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E5A93C]" />
-                  <span>External USB-C and Bluetooth microphone support</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E5A93C]" />
-                  <span>Add-Only direct camera roll export permissions</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setDownloadModalPlatform('ios')}
-                className="px-4 py-2.5 rounded-lg text-xs font-semibold bg-[#1C2026] hover:bg-[#262B33] text-[#F3F5F7] flex items-center gap-2 transition-colors"
-              >
-                <Apple className="w-4 h-4" />
-                <span>App Store</span>
-              </button>
-              <button
-                onClick={() => setDownloadModalPlatform('android')}
-                className="px-4 py-2.5 rounded-lg text-xs font-semibold bg-[#1C2026] hover:bg-[#262B33] text-[#F3F5F7] flex items-center gap-2 transition-colors"
-              >
-                <Smartphone className="w-4 h-4 text-[#10B981]" />
-                <span>Google Play</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Web Studio Card */}
-          <div className="p-8 rounded-xl bg-[#131518] flex flex-col justify-between">
-            <div>
-              <div className="text-xs font-mono text-[#E5A93C] mb-2">Desktop Browser</div>
-              <h3 className="text-2xl font-bold text-[#F3F5F7] font-['Outfit'] mb-4">
+              <div className="text-xs font-mono text-[#E5A93C] mb-2">Browser Studio</div>
+              <h3 className="text-2xl font-bold text-[#F3F5F7] font-['Outfit'] mb-3">
                 Web Recording Studio
               </h3>
               <p className="text-sm text-[#969EAA] leading-relaxed mb-6">
-                Record your screen and webcam together in a clean 50/50 split (top/bottom or left/right).
-                Zero clutter, instant in-browser recording, and direct video export to disk.
+                Direct in-browser studio with real-time teleprompter, framing presets, and high-bitrate local disk exports. No installation or setup required.
               </p>
-
-              <div className="space-y-2 text-xs font-mono text-[#969EAA] mb-8">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E5A93C]" />
-                  <span>Simultaneous screen sharing &amp; camera feed</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E5A93C]" />
-                  <span>Split-screen layouts: top/bottom &amp; left/right</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E5A93C]" />
-                  <span>100% on-device processing with zero cloud delay</span>
-                </div>
-              </div>
             </div>
 
             <div>
               <Link
                 to="/studio"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-[#E5A93C] hover:bg-[#FFB834] text-[#0D0E11] transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-xs font-bold bg-[#E5A93C] hover:bg-[#FFB834] text-[#0D0E11] transition-all hover:scale-[1.01]"
               >
                 <span>Launch Web Studio</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ================= PRIVACY BANNER ================= */}
-      <section className="py-16 px-6 sm:px-12 max-w-6xl mx-auto">
-        <div className="p-8 rounded-xl bg-[#131518] text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div className="max-w-xl">
-            <div className="text-xs font-mono text-[#10B981] mb-1">Local Processing Guarantee</div>
-            <h4 className="text-lg font-bold text-[#F3F5F7] font-['Outfit']">
-              Your media stays on your device. Always.
-            </h4>
-            <p className="text-xs text-[#969EAA] mt-1 leading-relaxed">
-              ShotOnce does not operate media processing servers. All compositing, cropping, and encoding run
-              locally in device memory and save to your local disk.
-            </p>
+          {/* Mobile Companion */}
+          <div className="p-8 rounded-xl bg-[#0F1116] border border-[#1E222A] flex flex-col justify-between">
+            <div>
+              <div className="text-xs font-mono text-[#E5A93C] mb-2">Mobile Instrument</div>
+              <h3 className="text-2xl font-bold text-[#F3F5F7] font-['Outfit'] mb-3">
+                iOS &amp; Android Apps
+              </h3>
+              <p className="text-sm text-[#969EAA] leading-relaxed mb-6">
+                Calibrated optical camera instrument with manual shutter controls, zebra exposure guides, and USB-C microphone support.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setDownloadModalPlatform('ios')}
+                className="px-4 py-2.5 rounded-lg text-xs font-semibold bg-[#161920] hover:bg-[#20242E] text-[#F3F5F7] border border-[#262B34] flex items-center gap-2 transition-colors"
+              >
+                <Apple className="w-4 h-4" />
+                <span>App Store</span>
+              </button>
+              <button
+                onClick={() => setDownloadModalPlatform('android')}
+                className="px-4 py-2.5 rounded-lg text-xs font-semibold bg-[#161920] hover:bg-[#20242E] text-[#F3F5F7] border border-[#262B34] flex items-center gap-2 transition-colors"
+              >
+                <Smartphone className="w-4 h-4 text-[#10B981]" />
+                <span>Google Play</span>
+              </button>
+            </div>
           </div>
-
-          <Link
-            to="/privacy"
-            className="px-4 py-2 rounded-lg text-xs font-medium bg-[#1C2026] hover:bg-[#262B33] text-[#F3F5F7] shrink-0 transition-colors"
-          >
-            Read Privacy Policy
-          </Link>
         </div>
       </section>
 
       {/* ================= FOOTER ================= */}
-      <footer className="py-12 px-6 sm:px-12 max-w-6xl mx-auto text-xs text-[#5C6370]">
+      <footer className="py-12 px-6 sm:px-12 max-w-6xl mx-auto border-t border-[#14171E] text-xs text-[#5C6370]">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 rounded overflow-hidden bg-[#131518]">
@@ -356,13 +275,13 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* ================= MINIMAL DOWNLOAD MODAL ================= */}
+      {/* ================= DOWNLOAD MODAL ================= */}
       {downloadModalPlatform && (
         <div className="fixed inset-0 z-50 bg-[#07080A]/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-[#131518] rounded-xl p-6 text-left">
+          <div className="w-full max-w-md bg-[#131518] border border-[#262B33] rounded-xl p-6 text-left shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#07080A]">
+                <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#07080A] border border-[#262B33]">
                   <img src="/shotonce-icon.png" alt="ShotOnce" className="w-full h-full object-cover" />
                 </div>
                 <div>
@@ -384,8 +303,8 @@ export default function Home() {
             </div>
 
             <p className="text-xs text-[#969EAA] leading-relaxed mb-6">
-              ShotOnce is deploying to {downloadModalPlatform === 'ios' ? 'the App Store' : 'Google Play'}.
-              You can also use the full Web Studio right in your browser with zero installation.
+              ShotOnce mobile camera instruments are rolling out on {downloadModalPlatform === 'ios' ? 'the App Store' : 'Google Play'}.
+              In the meantime, the full Web Studio is live right now in your browser with zero installation.
             </p>
 
             <div className="space-y-2.5 font-mono text-xs">
@@ -393,7 +312,7 @@ export default function Home() {
                 href={downloadModalPlatform === 'ios' ? 'https://apps.apple.com' : 'https://play.google.com'}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-2.5 rounded-lg font-semibold bg-[#F3F5F7] text-[#0D0E11] hover:bg-white flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-lg font-semibold bg-[#F3F5F7] text-[#0D0E11] hover:bg-white flex items-center justify-center gap-2 transition-colors"
               >
                 <span>Open {downloadModalPlatform === 'ios' ? 'App Store' : 'Google Play'}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -402,10 +321,10 @@ export default function Home() {
               <Link
                 to="/studio"
                 onClick={() => setDownloadModalPlatform(null)}
-                className="w-full py-2.5 rounded-lg font-semibold bg-[#1C2026] hover:bg-[#262B33] text-[#F3F5F7] flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-lg font-semibold bg-[#1C2026] hover:bg-[#262B33] text-[#F3F5F7] flex items-center justify-center gap-2 transition-colors"
               >
                 <Monitor className="w-4 h-4 text-[#E5A93C]" />
-                <span>Open Web Studio Instead</span>
+                <span>Launch Web Studio</span>
               </Link>
             </div>
           </div>
