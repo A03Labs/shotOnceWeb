@@ -11,6 +11,7 @@ import {
   Video,
   Sparkles,
 } from 'lucide-react';
+import { Footer } from '../components/Footer';
 import type { Route } from './+types/home';
 
 export function meta({}: Route.MetaArgs) {
@@ -51,6 +52,9 @@ export default function Home() {
             <a href="#platforms" className="hover:text-[#F3F5F7] transition-colors">
               Platforms
             </a>
+            <Link to="/terms" className="hover:text-[#F3F5F7] transition-colors">
+              Terms
+            </Link>
             <Link to="/privacy" className="hover:text-[#F3F5F7] transition-colors">
               Privacy
             </Link>
@@ -82,7 +86,7 @@ export default function Home() {
 
         {/* Main Headline */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#F3F5F7] font-['Outfit'] leading-[1.08] max-w-4xl">
-          Screen &amp; face. Perfectly split.
+         Record Screen &amp; face. Perfectly split.
         </h1>
 
         {/* Description */}
@@ -246,34 +250,7 @@ export default function Home() {
       </section>
 
       {/* ================= FOOTER ================= */}
-      <footer className="py-12 px-6 sm:px-12 max-w-6xl mx-auto border-t border-[#14171E] text-xs text-[#5C6370]">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-5 h-5 rounded overflow-hidden bg-[#131518]">
-              <img src="/shotonce-icon.png" alt="ShotOnce" className="w-full h-full object-cover" />
-            </div>
-            <span className="font-bold text-[#F3F5F7]">ShotOnce</span>
-            <span>• Alabo Excel</span>
-          </div>
-
-          <div className="flex items-center gap-6 font-mono text-xs">
-            <Link to="/studio" className="hover:text-[#F3F5F7] transition-colors">
-              Web Studio
-            </Link>
-            <Link to="/privacy" className="hover:text-[#F3F5F7] transition-colors">
-              Privacy Policy
-            </Link>
-            <a
-              href="https://alaboexcel.xyz"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-[#F3F5F7] transition-colors"
-            >
-              alaboexcel.xyz
-            </a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {/* ================= DOWNLOAD MODAL ================= */}
       {downloadModalPlatform && (

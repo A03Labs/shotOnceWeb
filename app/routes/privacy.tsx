@@ -12,6 +12,7 @@ import {
   Mail,
   Globe
 } from 'lucide-react';
+import { Footer } from '../components/Footer';
 import type { Route } from './+types/privacy';
 
 export function meta({}: Route.MetaArgs) {
@@ -31,7 +32,7 @@ export default function PrivacyPolicy() {
     <div className="min-h-screen bg-[#07080A] text-[#F3F5F7] selection:bg-[#E5A93C] selection:text-[#0D0E11] py-16 px-6 sm:px-12 font-sans antialiased">
       <div className="max-w-3xl mx-auto text-left">
         {/* Navigation */}
-        <div className="mb-10 flex items-center justify-between">
+        <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
           <Link
             to="/"
             className="inline-flex items-center gap-2 text-xs font-medium text-[#969EAA] hover:text-[#F3F5F7] transition-colors"
@@ -40,9 +41,17 @@ export default function PrivacyPolicy() {
             <span>Back to Home</span>
           </Link>
 
-          <div className="flex items-center gap-2 text-xs font-mono text-[#10B981]">
-            <span className="w-2 h-2 rounded-full bg-[#10B981]" />
-            <span>100% On-Device Processing</span>
+          <div className="flex items-center gap-4 text-xs font-mono">
+            <Link
+              to="/terms"
+              className="text-[#969EAA] hover:text-[#E5A93C] transition-colors"
+            >
+              Terms of Use
+            </Link>
+            <div className="flex items-center gap-2 text-[#10B981]">
+              <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+              <span>100% On-Device Processing</span>
+            </div>
           </div>
         </div>
 
@@ -82,8 +91,8 @@ export default function PrivacyPolicy() {
             </div>
             <div>
               <span className="text-[#5C6370] block">Contact:</span>
-              <a href="mailto:privacy@alaboexcel.xyz" className="text-[#E5A93C] hover:underline">
-                privacy@alaboexcel.xyz
+              <a href="mailto:iamalaboexcel@gmail.com" className="text-[#E5A93C] hover:underline">
+                iamalaboexcel@gmail.com
               </a>
             </div>
           </div>
@@ -249,11 +258,7 @@ export default function PrivacyPolicy() {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
-              <a href="mailto:privacy@alaboexcel.xyz" className="p-3 rounded-lg bg-[#1C2026] hover:bg-[#262B33] flex items-center gap-3 transition-colors">
-                <Mail className="w-4 h-4 text-[#E5A93C]" />
-                <span>privacy@alaboexcel.xyz</span>
-              </a>
-
+             
               <a href="mailto:iamalaboexcel@gmail.com" className="p-3 rounded-lg bg-[#1C2026] hover:bg-[#262B33] flex items-center gap-3 transition-colors">
                 <Mail className="w-4 h-4 text-[#E5A93C]" />
                 <span>iamalaboexcel@gmail.com</span>
@@ -264,7 +269,7 @@ export default function PrivacyPolicy() {
                 <span>alaboexcel.xyz</span>
               </a>
 
-              <div className="p-3 rounded-lg bg-[#1C2026] flex items-center gap-3">
+              <div className="p-3 col-span-2 rounded-lg bg-[#1C2026] flex items-center gap-3">
                 <ShieldCheck className="w-4 h-4 text-[#E5A93C]" />
                 <span>Developer: Alabo Excel</span>
               </div>
@@ -272,10 +277,8 @@ export default function PrivacyPolicy() {
           </section>
         </div>
 
-        {/* Footer */}
-        <div className="mt-12 text-xs font-mono text-[#5C6370]">
-          &copy; {new Date().getFullYear()} ShotOnce by Alabo Excel. All rights reserved.
-        </div>
+        {/* Footer Navigation & Copyright */}
+        <Footer variant="contained" />
       </div>
     </div>
   );
