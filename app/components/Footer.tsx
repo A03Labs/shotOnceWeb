@@ -40,9 +40,9 @@ export function Footer({ className = '', variant = 'page' }: FooterProps) {
           <Link to="/" className="hover:text-[#F3F5F7] transition-colors">
             Home
           </Link>
-          <Link to="/studio" className="hover:text-[#F3F5F7] transition-colors">
+          {/* <Link to="/studio" className="hover:text-[#F3F5F7] transition-colors">
             Web Studio
-          </Link>
+          </Link> */}
           <Link to="/terms" className="hover:text-[#F3F5F7] transition-colors">
             Terms of Use
           </Link>

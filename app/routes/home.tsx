@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router';
 import {
   Monitor,
-  Smartphone,
-  Apple,
   ArrowRight,
   X,
   ExternalLink,
@@ -12,6 +10,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Footer } from '../components/Footer';
+import { AppStoreIcon, GooglePlayIcon } from '../components/StoreIcons';
 import type { Route } from './+types/home';
 
 export function meta({}: Route.MetaArgs) {
@@ -45,7 +44,7 @@ export default function Home() {
           </Link>
 
           {/* Nav Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-[#969EAA]">
+          {/* <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-[#969EAA]">
             <a href="#capabilities" className="hover:text-[#F3F5F7] transition-colors">
               Capabilities
             </a>
@@ -58,7 +57,7 @@ export default function Home() {
             <Link to="/privacy" className="hover:text-[#F3F5F7] transition-colors">
               Privacy
             </Link>
-          </nav>
+          </nav> */}
 
           {/* CTA Action */}
           <div className="flex items-center gap-3">
@@ -86,8 +85,8 @@ export default function Home() {
 
         {/* Main Headline */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#F3F5F7] font-['Outfit'] leading-[1.08] max-w-4xl">
-         Record Screen &amp; face. Perfectly split.
-        </h1>
+          Record, Screen &amp; face. Split perfectly.
+        </h1> 
 
         {/* Description */}
         <p className="mt-6 text-base sm:text-lg text-[#969EAA] leading-relaxed max-w-2xl mx-auto">
@@ -110,7 +109,7 @@ export default function Home() {
             onClick={() => setDownloadModalPlatform('ios')}
             className="px-5 py-3.5 rounded-xl text-xs sm:text-sm font-medium bg-[#131518] hover:bg-[#1C2026] text-[#F3F5F7] border border-[#262B33] flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
-            <Apple className="w-4 h-4" />
+            <AppStoreIcon className="w-4 h-4 shrink-0" />
             <span>iOS</span>
           </button>
 
@@ -118,7 +117,7 @@ export default function Home() {
             onClick={() => setDownloadModalPlatform('android')}
             className="px-5 py-3.5 rounded-xl text-xs sm:text-sm font-medium bg-[#131518] hover:bg-[#1C2026] text-[#F3F5F7] border border-[#262B33] flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
-            <Smartphone className="w-4 h-4 text-[#10B981]" />
+            <GooglePlayIcon className="w-4 h-4 shrink-0" />
             <span>Android</span>
           </button>
         </div>
@@ -234,14 +233,14 @@ export default function Home() {
                 onClick={() => setDownloadModalPlatform('ios')}
                 className="px-4 py-2.5 rounded-lg text-xs font-semibold bg-[#161920] hover:bg-[#20242E] text-[#F3F5F7] border border-[#262B34] flex items-center gap-2 transition-colors"
               >
-                <Apple className="w-4 h-4" />
+                <AppStoreIcon className="w-4 h-4 shrink-0" />
                 <span>App Store</span>
               </button>
               <button
                 onClick={() => setDownloadModalPlatform('android')}
                 className="px-4 py-2.5 rounded-lg text-xs font-semibold bg-[#161920] hover:bg-[#20242E] text-[#F3F5F7] border border-[#262B34] flex items-center gap-2 transition-colors"
               >
-                <Smartphone className="w-4 h-4 text-[#10B981]" />
+                <GooglePlayIcon className="w-4 h-4 shrink-0" />
                 <span>Google Play</span>
               </button>
             </div>
@@ -258,8 +257,12 @@ export default function Home() {
           <div className="w-full max-w-md bg-[#131518] border border-[#262B33] rounded-xl p-6 text-left shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#07080A] border border-[#262B33]">
-                  <img src="/shotonce-icon.png" alt="ShotOnce" className="w-full h-full object-cover" />
+                <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#07080A] border border-[#262B33] flex items-center justify-center p-1.5">
+                  {downloadModalPlatform === 'ios' ? (
+                    <AppStoreIcon className="w-full h-full" />
+                  ) : (
+                    <GooglePlayIcon className="w-full h-full" />
+                  )}
                 </div>
                 <div>
                   <h3 className="font-bold text-[#F3F5F7] text-sm font-['Outfit']">
@@ -291,8 +294,13 @@ export default function Home() {
                 rel="noreferrer"
                 className="w-full py-2.5 rounded-lg font-semibold bg-[#F3F5F7] text-[#0D0E11] hover:bg-white flex items-center justify-center gap-2 transition-colors"
               >
+                {downloadModalPlatform === 'ios' ? (
+                  <AppStoreIcon className="w-4 h-4 shrink-0" />
+                ) : (
+                  <GooglePlayIcon className="w-4 h-4 shrink-0" />
+                )}
                 <span>Open {downloadModalPlatform === 'ios' ? 'App Store' : 'Google Play'}</span>
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ExternalLink className="w-3.5 h-3.5 opacity-60" />
               </a>
 
               <Link
